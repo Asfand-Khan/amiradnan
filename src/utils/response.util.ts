@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ApiResponse } from '../types';
+import { ApiResponse } from '../types/index.js';
 
 export class ResponseUtil {
   static success<T>(

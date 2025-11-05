@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types";
-import { verifyAccessToken } from "../utils/jwt.util";
-import { ResponseUtil } from "../utils/response.util";
+import { AuthRequest } from "../types/index.js";
+import { verifyAccessToken } from "../utils/jwt.util.js";
+import { ResponseUtil } from "../utils/response.util.js";
 
 export const authenticateToken = (
   req: AuthRequest,

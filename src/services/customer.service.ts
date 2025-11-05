@@ -29,7 +29,6 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
-      pointsExpiryDays: customer.pointsExpiryDays,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
     };
@@ -50,7 +49,6 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
-      pointsExpiryDays: customer.pointsExpiryDays,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
     };
@@ -71,7 +69,6 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
-      pointsExpiryDays: customer.pointsExpiryDays,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
     };
@@ -96,7 +93,6 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
-      pointsExpiryDays: customer.pointsExpiryDays,
       isActive: customer.isActive,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,

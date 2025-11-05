@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { config } from "../config/environment";
+import { config } from "../config/environment.js";
 
 export class AppError extends Error {
   statusCode: number;

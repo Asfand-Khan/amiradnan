@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 
 export const validateResource =
   (schema: AnyZodObject) =>
+    // @ts-ignore
   (req: Request, res: Response, next: NextFunction) => {
     try {
       schema.parse(req.body);
