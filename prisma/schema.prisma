@@ -1,0 +1,574 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ApiLog {
+  id              Int      @id @default(autoincrement())
+  traceId         String?  @map("trace_id") @db.VarChar(150)
+  route           String   @db.VarChar(255)
+  httpMethod      String   @map("http_method") @db.VarChar(10)
+  requestPayload  String?  @map("request_payload") @db.MediumText
+  responsePayload String?  @map("response_payload") @db.MediumText
+  statusCode      Int?     @map("status_code")
+  ipAddress       String?  @map("ip_address") @db.VarChar(45)
+  userAgent       String?  @map("user_agent") @db.VarChar(512)
+  processedBy     Int?     @map("processed_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  processedByUser ShopUser? @relation(fields: [processedBy], references: [id])
+
+  @@index([processedBy], map: "processed_by_idx")
+  @@index([route], map: "route_idx")
+  @@index([createdAt], map: "created_at_idx")
+  @@map("api_logs")
+}
+
+model AuditLog {
+  id           Int       @id @default(autoincrement())
+  actorId      Int?      @map("actor_id")
+  actorType    ActorType @default(shop_user) @map("actor_type")
+  action       String    @db.VarChar(255)
+  resourceType String?   @map("resource_type") @db.VarChar(255)
+  resourceId   String?   @map("resource_id") @db.VarChar(255)
+  detail       String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  actor ShopUser? @relation(fields: [actorId], references: [id])
+
+  @@index([actorId], map: "actor_id_idx")
+  @@map("audit_logs")
+}
+
+model AuthOtp {
+  id         Int        @id @default(autoincrement())
+  customerId Int        @map("customer_id")
+  otpCode    String     @map("otp_code") @db.VarChar(4)
+  purpose    OtpPurpose
+  expiresAt  DateTime   @map("expires_at")
+  used       Int        @default(0) @db.TinyInt
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@map("auth_otps")
+}
+
+model Challenge {
+  id                Int           @id @default(autoincrement())
+  name              String        @db.VarChar(255)
+  description       String?       @db.Text
+  type              ChallengeType
+  requiredAmount    Decimal       @default(0.00) @map("required_amount") @db.Decimal(12, 2)
+  requiredPurchases Int           @default(0) @map("required_purchases")
+  durationDays      Int?          @map("duration_days")
+  channel           Channel       @default(any)
+  bonusPoints       Int           @default(0) @map("bonus_points")
+  bonusPercent      Decimal       @default(0.00) @map("bonus_percent") @db.Decimal(6, 2)
+  startAt           DateTime?     @map("start_at")
+  endAt             DateTime?     @map("end_at")
+  active            Int           @default(1) @db.TinyInt
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at")
+
+  participants ChallengeParticipant[]
+
+  @@map("challenges")
+}
+
+model ChallengeParticipant {
+  id            Int       @id @default(autoincrement())
+  challengeId   Int       @map("challenge_id")
+  customerId    Int       @map("customer_id")
+  progressCount Int       @default(0) @map("progress_count")
+  completed     Int       @default(0) @db.TinyInt
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+  customer  Customer  @relation(fields: [customerId], references: [id])
+
+  @@unique([challengeId, customerId], map: "challenge_customer_uidx")
+  @@index([customerId], map: "customer_id_idx")
+  @@map("challenge_participants")
+}
+
+model Customer {
+  id                Int       @id @default(autoincrement())
+  name              String    @db.VarChar(200)
+  email             String    @unique(map: "email_uidx") @db.VarChar(254)
+  password          String    @db.VarChar(255)
+  phone             String    @db.VarChar(30)
+  city              String?   @db.VarChar(100)
+  address           String?   @db.VarChar(255)
+  gender            Gender?
+  profileCompleted  Int       @default(0) @map("profile_completed") @db.TinyInt
+  resetToken        String?   @map("reset_token")
+  resetTokenExpires DateTime? @map("reset_token_expires")
+  isActive          Int       @default(1) @map("is_active") @db.TinyInt
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  authOtps                AuthOtp[]
+  challengeParticipants   ChallengeParticipant[]
+  customerMeasurements    CustomerMeasurement[]
+  customerTiers           CustomerTier[]
+  deviceTokens            DeviceToken[]
+  orders                  Order[]
+  pointsBalance           PointsBalance?
+  pointsExpiryBatches     PointsExpiryBatch[]
+  pointsManualAdjustments PointsManualAdjustment[]
+  pointsTransactions      PointsTransaction[]
+  qrCodes                 QrCode[]
+  redemptions             Redemption[]
+  shopifyClaims           ShopifyClaim[]
+  RefreshToken            RefreshToken[]
+
+  @@map("customers")
+}
+
+model CustomerMeasurement {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @map("customer_id")
+  length     Decimal? @db.Decimal(6, 2)
+  width      Decimal? @db.Decimal(6, 2)
+  waist      Decimal? @db.Decimal(6, 2)
+  hip        Decimal? @db.Decimal(6, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId], map: "customer_id_idx")
+  @@map("customer_measurements")
+}
+
+model CustomerTier {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @map("customer_id")
+  tierId     Int      @map("tier_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  tier     Tier     @relation(fields: [tierId], references: [id])
+
+  @@unique([customerId, tierId], map: "customer_tier_uidx")
+  @@index([tierId], map: "tier_id_idx")
+  @@map("customer_tiers")
+}
+
+model DeviceToken {
+  id          Int      @id @default(autoincrement())
+  customerId  Int      @map("customer_id")
+  deviceToken String   @map("device_token") @db.VarChar(512)
+  platform    Platform @default(android)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@map("device_tokens")
+}
+
+model Location {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  address   String?  @db.VarChar(255)
+  city      String?  @db.VarChar(100)
+  phone     String?  @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  pointsTransactions PointsTransaction[]
+  pricePointRules    PricePointRule[]
+  redemptions        Redemption[]
+  shopUsers          ShopUser[]
+
+  @@map("locations")
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  title       String           @db.VarChar(255)
+  body        String           @db.Text
+  type        NotificationType @default(promo)
+  createdBy   Int?             @map("created_by")
+  scheduledAt DateTime?        @map("scheduled_at")
+  isBroadcast Int              @default(0) @map("is_broadcast") @db.TinyInt
+  active      Int              @default(1) @db.TinyInt
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
+
+  targets       NotificationTarget[]
+  createdByUser ShopUser?            @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy], map: "created_by_idx")
+  @@map("notifications")
+}
+
+model NotificationTarget {
+  id             Int        @id @default(autoincrement())
+  notificationId Int        @map("notification_id")
+  targetType     TargetType
+  targetTierId   Int?       @map("target_tier_id")
+  targetEmail    String?    @map("target_email") @db.VarChar(254)
+  targetPhone    String?    @map("target_phone") @db.VarChar(30)
+  targetGender   Gender?    @map("target_gender")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at")
+
+  notification Notification @relation(fields: [notificationId], references: [id])
+  targetTier   Tier?        @relation(fields: [targetTierId], references: [id])
+
+  @@index([notificationId], map: "notification_id_idx")
+  @@index([targetTierId], map: "target_tier_id_idx")
+  @@map("notification_targets")
+}
+
+model Order {
+  id            Int          @id @default(autoincrement())
+  customerId    Int          @map("customer_id")
+  orderNumber   String       @map("order_number") @db.VarChar(100)
+  channel       OrderChannel
+  status        OrderStatus  @default(pending)
+  orderAmount   Decimal      @default(0.00) @map("order_amount") @db.Decimal(12, 2)
+  pointsAwarded Int          @default(0) @map("points_awarded")
+  verifiedAt    DateTime?    @map("verified_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@index([orderNumber], map: "order_number_idx")
+  @@map("orders")
+}
+
+model PointsBalance {
+  customerId      Int      @id @map("customer_id")
+  totalPoints     Int      @default(0) @map("total_points")
+  availablePoints Int      @default(0) @map("available_points")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("points_balances")
+}
+
+model PointsExpiryBatch {
+  id              Int       @id @default(autoincrement())
+  customerId      Int       @map("customer_id")
+  transactionId   Int       @map("transaction_id")
+  pointsAllocated Int       @map("points_allocated")
+  pointsRemaining Int       @map("points_remaining")
+  expiresAt       DateTime? @map("expires_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  transaction PointsTransaction @relation(fields: [transactionId], references: [id])
+
+  @@index([transactionId], map: "transaction_id_idx")
+  @@index([customerId], map: "customer_id_idx")
+  @@index([expiresAt], map: "expires_at_idx")
+  @@map("points_expiry_batches")
+}
+
+model PointsExpiryDefault {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(200)
+  expiryDays Int?     @map("expiry_days")
+  active     Int      @default(1) @db.TinyInt
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("points_expiry_defaults")
+}
+
+model PointsManualAdjustment {
+  id          Int      @id @default(autoincrement())
+  customerId  Int      @map("customer_id")
+  amount      Int
+  reason      String?  @db.Text
+  processedBy Int?     @map("processed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  processedByUser ShopUser? @relation(fields: [processedBy], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@index([processedBy], map: "processed_by_idx")
+  @@map("points_manual_adjustments")
+}
+
+model PointsTransaction {
+  id              Int             @id @default(autoincrement())
+  customerId      Int             @map("customer_id")
+  amount          Int
+  type            TransactionType
+  referenceId     String?         @map("reference_id") @db.VarChar(255)
+  locationId      Int?            @map("location_id")
+  orderAmount     Decimal?        @map("order_amount") @db.Decimal(12, 2)
+  productCategory String?         @map("product_category") @db.VarChar(100)
+  note            String?         @db.Text
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at")
+
+  customer      Customer            @relation(fields: [customerId], references: [id])
+  location      Location?           @relation(fields: [locationId], references: [id])
+  expiryBatches PointsExpiryBatch[]
+
+  @@index([locationId], map: "location_id_idx")
+  @@index([customerId], map: "customer_id_idx")
+  @@index([createdAt], map: "created_at_idx")
+  @@map("points_transactions")
+}
+
+model PricePointRule {
+  id            Int      @id @default(autoincrement())
+  locationId    Int?     @map("location_id")
+  name          String?  @db.VarChar(255)
+  ruleType      RuleType @default(per_currency_unit) @map("rule_type")
+  pointsPerUnit Int      @default(1) @map("points_per_unit")
+  unitValue     Decimal  @default(100.00) @map("unit_value") @db.Decimal(12, 2)
+  active        Int      @default(1) @db.TinyInt
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  location Location? @relation(fields: [locationId], references: [id])
+
+  @@index([locationId], map: "location_id_idx")
+  @@map("price_point_rules")
+}
+
+model QrCode {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @map("customer_id")
+  codeValue  String   @unique(map: "code_value_uidx") @map("code_value") @db.VarChar(255)
+  expiresAt  DateTime @map("expires_at")
+  active     Int      @default(1) @db.TinyInt
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@map("qr_codes")
+}
+
+model Redemption {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @map("customer_id")
+  rewardId   Int      @map("reward_id")
+  redeemedAt DateTime @default(now()) @map("redeemed_at")
+  locationId Int?     @map("location_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer  @relation(fields: [customerId], references: [id])
+  reward   Reward    @relation(fields: [rewardId], references: [id])
+  location Location? @relation(fields: [locationId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@index([rewardId], map: "reward_id_idx")
+  @@index([locationId], map: "location_id_idx")
+  @@map("redemptions")
+}
+
+model Reward {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(200)
+  description    String?  @db.Text
+  requiredPoints Int      @map("required_points")
+  stock          Int      @default(0)
+  active         Int      @default(1) @db.TinyInt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  redemptions Redemption[]
+
+  @@map("rewards")
+}
+
+model ShopBanner {
+  id        Int      @id @default(autoincrement())
+  title     String?  @db.VarChar(200)
+  imageUrl  String?  @map("image_url") @db.VarChar(500)
+  targetUrl String?  @map("target_url") @db.VarChar(500)
+  active    Int      @default(1) @db.TinyInt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("shop_banners")
+}
+
+model ShopUser {
+  id           Int      @id @default(autoincrement())
+  locationId   Int?     @map("location_id")
+  email        String   @unique(map: "email_uidx") @db.VarChar(254)
+  name         String   @db.VarChar(150)
+  role         UserRole @default(staff)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  isActive     Int      @default(1) @map("is_active") @db.TinyInt
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  location                Location?                @relation(fields: [locationId], references: [id])
+  apiLogs                 ApiLog[]
+  auditLogs               AuditLog[]
+  notifications           Notification[]
+  pointsManualAdjustments PointsManualAdjustment[]
+  RefreshToken            RefreshToken[]
+
+  @@index([locationId], map: "location_id_idx")
+  @@map("shop_users")
+}
+
+model ShopifyClaim {
+  id                   Int       @id @default(autoincrement())
+  customerId           Int       @map("customer_id")
+  shopifyOrderId       String    @map("shopify_order_id") @db.VarChar(100)
+  claimedAt            DateTime  @default(now()) @map("claimed_at")
+  verified             Int       @default(0) @db.TinyInt
+  verifiedAt           DateTime? @map("verified_at")
+  verificationResponse String?   @map("verification_response") @db.Text
+  pointsAwarded        Int       @default(0) @map("points_awarded")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId], map: "customer_id_idx")
+  @@index([shopifyOrderId], map: "shopify_order_id_idx")
+  @@map("shopify_claims")
+}
+
+model Tier {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(100)
+  threshold    Int
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+  active       Int     @default(1) @db.TinyInt
+
+  customerTiers       CustomerTier[]
+  notificationTargets NotificationTarget[]
+
+  @@map("tiers")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  customerId Int?     @map("customer_id")
+  token      String   @unique @db.VarChar(500)
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user     ShopUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens") // maps to the same table name as in TypeORM
+}
+
+// Enums
+enum ActorType {
+  shop_user
+  system
+}
+
+enum OtpPurpose {
+  login
+  verify_email
+  reset
+}
+
+enum ChallengeType {
+  purchase_based
+  time_based
+  profile_based
+  channel_based
+}
+
+enum Channel {
+  online
+  instore
+  any
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum Platform {
+  ios
+  android
+  web
+}
+
+enum NotificationType {
+  welcome
+  tier_update
+  challenge_completed
+  promo
+  transaction
+}
+
+enum TargetType {
+  tier
+  email
+  phone
+  all
+}
+
+enum OrderChannel {
+  online
+  instore
+}
+
+enum OrderStatus {
+  pending
+  verified
+  rejected
+}
+
+enum TransactionType {
+  signup
+  profile_complete
+  qr_purchase
+  shopify_order
+  challenge
+  manual_credit
+  manual_deduct
+  expiry
+  redeem
+}
+
+enum RuleType {
+  flat_rate
+  per_currency_unit
+  category_based
+}
+
+enum UserRole {
+  staff
+  manager
+  admin
+}
