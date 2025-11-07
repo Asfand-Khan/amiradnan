@@ -12,6 +12,7 @@ import { generalLimiter } from "./middleware/rateLimiter.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import customerRoutes from "./routes/customer.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
+import qrCodeRoutes from "./routes/qrCode.routes.js";
 
 class Server {
   private app: Application;
@@ -76,7 +77,7 @@ class Server {
     this.app.use(`${apiPrefix}/auth`, authRoutes);
     this.app.use(`${apiPrefix}/customers`, customerRoutes);
     this.app.use(`${apiPrefix}/profiles`, profileRoutes);
-    // this.app.use(`${apiPrefix}/users`, userRoutes);
+    this.app.use(`${apiPrefix}/qr-codes`, qrCodeRoutes);
     // this.app.use(`${apiPrefix}/follows`, followRoutes);
     // this.app.use(`${apiPrefix}/messages`, messageRoutes);
     // this.app.use(`${apiPrefix}/likes`, likeRoutes);

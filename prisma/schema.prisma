@@ -486,7 +486,26 @@ model RefreshToken {
   @@map("refresh_tokens") // maps to the same table name as in TypeORM
 }
 
+model Widget {
+  id        Int       @id @default(autoincrement())
+  title     String    @map("title")
+  subTitle  String    @map("sub_title")
+  image     String    @map("image") @db.LongText
+  fontColor FontColor @map("font_color")
+  active    Int       @default(1) @db.TinyInt
+  default   Int       @db.TinyInt
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("widgets")
+}
+
 // Enums
+enum FontColor {
+  dark
+  light
+}
+
 enum ActorType {
   shop_user
   system
