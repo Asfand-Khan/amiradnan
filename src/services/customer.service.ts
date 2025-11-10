@@ -6,6 +6,7 @@ import {
   CreateCustomerMeasurement,
 } from "../validations/customer.validaions.js";
 import { UserListQuery } from "../types/index.js";
+import { hashPassword } from "../utils/password.util.js";
 
 export class CustomerService {
   private customerRepository: CustomerRepository;
@@ -35,7 +36,12 @@ export class CustomerService {
   }
 
   async updateProfile(userId: number, data: Partial<CreateCustomer>) {
-    const customer = await this.customerRepository.update(userId, data);
+    let password;
+    if(data.password){
+      password = await hashPassword(data.password);
+    }
+
+    const customer = await this.customerRepository.update(userId, {...data, password});
     if (!customer) {
       throw new AppError("Customer not found", 404);
     }

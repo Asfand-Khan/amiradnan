@@ -46,22 +46,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model AuthOtp {
-  id         Int        @id @default(autoincrement())
-  customerId Int        @map("customer_id")
-  otpCode    String     @map("otp_code") @db.VarChar(4)
-  purpose    OtpPurpose
-  expiresAt  DateTime   @map("expires_at")
-  used       Int        @default(0) @db.TinyInt
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at")
-
-  customer Customer @relation(fields: [customerId], references: [id])
-
-  @@index([customerId], map: "customer_id_idx")
-  @@map("auth_otps")
-}
-
 model Challenge {
   id                Int           @id @default(autoincrement())
   name              String        @db.VarChar(255)
@@ -112,17 +96,16 @@ model Customer {
   address           String?   @db.VarChar(255)
   gender            Gender?
   profileCompleted  Int       @default(0) @map("profile_completed") @db.TinyInt
+  deviceToken       String?   @map("device_token") @db.VarChar(512)
   resetToken        String?   @map("reset_token")
   resetTokenExpires DateTime? @map("reset_token_expires")
   isActive          Int       @default(1) @map("is_active") @db.TinyInt
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  authOtps                AuthOtp[]
   challengeParticipants   ChallengeParticipant[]
   customerMeasurements    CustomerMeasurement[]
   customerTiers           CustomerTier[]
-  deviceTokens            DeviceToken[]
   orders                  Order[]
   pointsBalance           PointsBalance?
   pointsExpiryBatches     PointsExpiryBatch[]
@@ -168,20 +151,6 @@ model CustomerTier {
   @@map("customer_tiers")
 }
 
-model DeviceToken {
-  id          Int      @id @default(autoincrement())
-  customerId  Int      @map("customer_id")
-  deviceToken String   @map("device_token") @db.VarChar(512)
-  platform    Platform @default(android)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-
-  customer Customer @relation(fields: [customerId], references: [id])
-
-  @@index([customerId], map: "customer_id_idx")
-  @@map("device_tokens")
-}
-
 model Location {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(200)
@@ -192,7 +161,6 @@ model Location {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   pointsTransactions PointsTransaction[]
-  pricePointRules    PricePointRule[]
   redemptions        Redemption[]
   shopUsers          ShopUser[]
 
@@ -340,18 +308,11 @@ model PointsTransaction {
 
 model PricePointRule {
   id            Int      @id @default(autoincrement())
-  locationId    Int?     @map("location_id")
-  name          String?  @db.VarChar(255)
-  ruleType      RuleType @default(per_currency_unit) @map("rule_type")
   pointsPerUnit Int      @default(1) @map("points_per_unit")
   unitValue     Decimal  @default(100.00) @map("unit_value") @db.Decimal(12, 2)
-  active        Int      @default(1) @db.TinyInt
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
-  location Location? @relation(fields: [locationId], references: [id])
-
-  @@index([locationId], map: "location_id_idx")
   @@map("price_point_rules")
 }
 
@@ -423,6 +384,7 @@ model ShopUser {
   name         String   @db.VarChar(150)
   role         UserRole @default(staff)
   passwordHash String   @map("password_hash") @db.VarChar(255)
+  otpCode      String   @map("otp_code") @db.VarChar(4)
   isActive     Int      @default(1) @map("is_active") @db.TinyInt
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
@@ -498,6 +460,16 @@ model Widget {
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@map("widgets")
+}
+
+model Promotion {
+  id        Int      @id @default(autoincrement())
+  image     String   @map("image") @db.LongText
+  active    Int      @default(1) @db.TinyInt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("promotions")
 }
 
 // Enums
