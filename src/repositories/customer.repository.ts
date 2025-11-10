@@ -1,5 +1,4 @@
 import prisma from "../config/database.js";
-import { hashPassword } from "../utils/password.util.js";
 import {
   CreateCustomer,
   CreateCustomerMeasurement,
