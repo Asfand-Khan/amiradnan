@@ -95,6 +95,7 @@ model Customer {
   city              String?   @db.VarChar(100)
   address           String?   @db.VarChar(255)
   gender            Gender?
+  profileImage      String?   @map("profile_image") @db.Text
   profileCompleted  Int       @default(0) @map("profile_completed") @db.TinyInt
   deviceToken       String?   @map("device_token") @db.VarChar(512)
   resetToken        String?   @map("reset_token")
@@ -378,16 +379,16 @@ model ShopBanner {
 }
 
 model ShopUser {
-  id           Int      @id @default(autoincrement())
-  locationId   Int?     @map("location_id")
-  email        String   @unique(map: "email_uidx") @db.VarChar(254)
-  name         String   @db.VarChar(150)
-  role         UserRole @default(staff)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  otpCode      String   @map("otp_code") @db.VarChar(4)
-  isActive     Int      @default(1) @map("is_active") @db.TinyInt
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  id         Int      @id @default(autoincrement())
+  locationId Int?     @map("location_id")
+  email      String   @unique(map: "email_uidx") @db.VarChar(254)
+  name       String   @db.VarChar(150)
+  phone      String   @db.VarChar(150)
+  role       UserRole @default(staff)
+  password   String   @map("password") @db.VarChar(255)
+  isActive   Int      @default(1) @map("is_active") @db.TinyInt
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
   location                Location?                @relation(fields: [locationId], references: [id])
   apiLogs                 ApiLog[]
@@ -395,9 +396,52 @@ model ShopUser {
   notifications           Notification[]
   pointsManualAdjustments PointsManualAdjustment[]
   RefreshToken            RefreshToken[]
+  userMenuRights          UserMenuRight[]
 
   @@index([locationId], map: "location_id_idx")
   @@map("shop_users")
+}
+
+model Menu {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String? @db.VarChar(100)
+  parentId    Int?    @map("parent_id")
+  url         String? @db.VarChar(255)
+  icon        String? @db.VarChar(100)
+  sorting     Int     @default(0)
+  createdBy   Int     @map("created_by")
+  deletedBy   Int?    @map("deleted_by")
+  isActive    Boolean @default(true) @map("is_active")
+  isDeleted   Boolean @default(false) @map("is_deleted")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  parent           Menu?           @relation("menu_children", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  children         Menu[]          @relation("menu_children")
+  user_menu_rights UserMenuRight[]
+
+  @@map("menus")
+}
+
+model UserMenuRight {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  menuId    Int      @map("menu_id")
+  canView   Boolean  @default(true) @map("can_view")
+  canCreate Boolean  @default(false) @map("can_create")
+  canEdit   Boolean  @default(false) @map("can_edit")
+  canDelete Boolean  @default(false) @map("can_delete")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user ShopUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menu Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, menuId])
+  @@map("user_menu_rights")
 }
 
 model ShopifyClaim {

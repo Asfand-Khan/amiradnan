@@ -4,9 +4,11 @@ import { Customer } from "@prisma/client";
 import {
   CreateCustomer,
   CreateCustomerMeasurement,
+  UpdateCustomer,
 } from "../validations/customer.validaions.js";
 import { UserListQuery } from "../types/index.js";
 import { hashPassword } from "../utils/password.util.js";
+import { saveBase64Image } from "../utils/file.util.js";
 
 export class CustomerService {
   private customerRepository: CustomerRepository;
@@ -30,18 +32,29 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
+      profileImage: customer.profileImage,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
     };
   }
 
-  async updateProfile(userId: number, data: Partial<CreateCustomer>) {
+  async updateProfile(userId: number, data: UpdateCustomer) {
     let password;
-    if(data.password){
+    let image;
+    if (data.password) {
       password = await hashPassword(data.password);
     }
 
-    const customer = await this.customerRepository.update(userId, {...data, password});
+    if (data.image) {
+      image = await saveBase64Image(data.image, "customers");
+    }
+
+    const customer = await this.customerRepository.update(userId, {
+      ...data,
+      password,
+      image,
+    });
+
     if (!customer) {
       throw new AppError("Customer not found", 404);
     }
@@ -55,6 +68,7 @@ export class CustomerService {
       address: customer.address,
       gender: customer.gender,
       profileCompleted: customer.profileCompleted,
+      profileImage: customer.profileImage,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
     };

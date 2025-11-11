@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import {
   CreateCustomer,
   CreateCustomerMeasurement,
+  UpdateCustomer,
 } from "../validations/customer.validaions.js";
 import { Customer, CustomerMeasurement, Gender, Prisma } from "@prisma/client";
 
@@ -72,13 +73,19 @@ export class CustomerRepository {
     return { customers, total };
   }
 
-  async update(
-    id: number,
-    userData: Partial<CreateCustomer>
-  ): Promise<Customer | null> {
+  async update(id: number, userData: UpdateCustomer): Promise<Customer | null> {
     const updated = await this.repository.update({
       where: { id },
-      data: userData,
+      data: {
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        phone: userData.phone,
+        city: userData.city,
+        address: userData.address,
+        gender: userData.gender as Gender,
+        profileImage: userData.image,
+      },
     });
     return updated;
   }

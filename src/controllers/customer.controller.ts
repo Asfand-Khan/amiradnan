@@ -7,6 +7,7 @@ import {
   CreateCustomerMeasurement,
   CustomerById,
   CustomerFilter,
+  UpdateCustomer,
 } from "../validations/customer.validaions.js";
 
 export class CustomerController {
@@ -37,7 +38,7 @@ export class CustomerController {
   ): Promise<void> => {
     try {
       const userId = req.user!.id;
-      const data: Partial<CreateCustomer> = req.body;
+      const data: UpdateCustomer = req.body;
       const profile = await this.customerService.updateProfile(userId, data);
       ResponseUtil.success(res, profile, "Profile updated successfully");
     } catch (error) {
@@ -115,8 +116,15 @@ export class CustomerController {
     try {
       const userId = req.user!.id;
       const data: CreateCustomerMeasurement = req.body;
-      const profile = await this.customerService.createMeasurement(userId, data);
-      ResponseUtil.success(res, profile, "Profile Measurements created successfully");
+      const profile = await this.customerService.createMeasurement(
+        userId,
+        data
+      );
+      ResponseUtil.success(
+        res,
+        profile,
+        "Profile Measurements created successfully"
+      );
     } catch (error) {
       next(error);
     }
@@ -129,8 +137,14 @@ export class CustomerController {
   ): Promise<void> => {
     try {
       const userId = req.user!.id;
-      const profile = await this.customerService.getMeasurementsByCustomerId(userId);
-      ResponseUtil.success(res, profile, "Profile Measurements fetched successfully");
+      const profile = await this.customerService.getMeasurementsByCustomerId(
+        userId
+      );
+      ResponseUtil.success(
+        res,
+        profile,
+        "Profile Measurements fetched successfully"
+      );
     } catch (error) {
       next(error);
     }
@@ -144,8 +158,15 @@ export class CustomerController {
     try {
       const userId = req.user!.id;
       const data: Partial<CreateCustomerMeasurement> = req.body;
-      const profile = await this.customerService.updateMeasurement(userId, data);
-      ResponseUtil.success(res, profile, "Profile Measurements updated successfully");
+      const profile = await this.customerService.updateMeasurement(
+        userId,
+        data
+      );
+      ResponseUtil.success(
+        res,
+        profile,
+        "Profile Measurements updated successfully"
+      );
     } catch (error) {
       next(error);
     }
