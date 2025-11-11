@@ -3,7 +3,6 @@ import { CustomerService } from "../services/customer.service.js";
 import { ResponseUtil } from "../utils/response.util.js";
 import { AuthRequest } from "../types/index.js";
 import {
-  CreateCustomer,
   CreateCustomerMeasurement,
   CustomerById,
   CustomerFilter,

@@ -2,7 +2,6 @@ import { CustomerRepository } from "../repositories/customer.repository.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { Customer } from "@prisma/client";
 import {
-  CreateCustomer,
   CreateCustomerMeasurement,
   UpdateCustomer,
 } from "../validations/customer.validaions.js";

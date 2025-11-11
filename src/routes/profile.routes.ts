@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth.middleware.js';
 import { CustomerController } from '../controllers/customer.controller.js';
 import { validateResource } from '../middleware/validation.middleware.js';
-import { createCustomerMeasurementSchema, createCustomerSchema, updateCustomerSchema } from '../validations/customer.validaions.js';
+import { createCustomerMeasurementSchema, updateCustomerSchema } from '../validations/customer.validaions.js';
 
 const router = Router();
 const customerController = new CustomerController();
