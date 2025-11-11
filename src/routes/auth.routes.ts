@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller.js";
-import { authLimiter } from "../middleware/rateLimiter.middleware.js";
 import { validateResource } from "../middleware/validation.middleware.js";
 import {
   createCustomerSchema,
@@ -23,7 +22,6 @@ const authController = new AuthController();
  */
 router.post(
   "/register",
-  authLimiter,
   validateResource(createCustomerSchema),
   authController.register
 );
@@ -35,7 +33,6 @@ router.post(
  */
 router.post(
   "/login",
-  authLimiter,
   validateResource(loginCustomerSchema),
   authController.login
 );
@@ -58,7 +55,6 @@ router.post(
  */
 router.post(
   "/forgot-password",
-  authLimiter,
   validateResource(forgotPasswordSchema),
   authController.forgotPassword
 );

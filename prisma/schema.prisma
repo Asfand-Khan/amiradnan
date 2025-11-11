@@ -367,13 +367,17 @@ model Reward {
 }
 
 model ShopBanner {
-  id        Int      @id @default(autoincrement())
-  title     String?  @db.VarChar(200)
-  imageUrl  String?  @map("image_url") @db.VarChar(500)
-  targetUrl String?  @map("target_url") @db.VarChar(500)
-  active    Int      @default(1) @db.TinyInt
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  id        Int            @id @default(autoincrement())
+  name      String?        @db.VarChar(200)
+  imageUrl  String?        @map("image_url") @db.VarChar(500)
+  targetUrl String?        @map("target_url") @db.VarChar(500)
+  sorting   String?
+  type      ShopBannerType
+  isAuto    Boolean?       @map("is_auto") @default(false)
+  delay     String?
+  active    Int            @default(1) @db.TinyInt
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @default(now()) @updatedAt @map("updated_at")
 
   @@map("shop_banners")
 }
@@ -520,6 +524,11 @@ model Promotion {
 enum FontColor {
   dark
   light
+}
+
+enum ShopBannerType {
+  slider
+  grid
 }
 
 enum ActorType {
