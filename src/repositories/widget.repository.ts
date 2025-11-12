@@ -1,5 +1,6 @@
 import { FontColor, Widget } from "@prisma/client";
 import prisma from "../config/database.js";
+import { UpdateWidget } from "../validations/widget.validations.js";
 
 export class WidgetRepository {
   private repository = prisma.widget;
@@ -9,7 +10,7 @@ export class WidgetRepository {
     subTitle: string,
     image: string,
     fontColor: FontColor,
-    byDefault: 0 | 1
+    byDefault: boolean
   ): Promise<Widget> {
     return await this.repository.create({
       data: {
@@ -27,29 +28,41 @@ export class WidgetRepository {
   }
 
   async findAll(): Promise<Widget[]> {
-    const qrCodes = await this.repository.findMany();
-    return qrCodes;
+    return await this.repository.findMany({
+      where: { isDeleted: false },
+    });
   }
 
-  //   async deactivateExpiredCodes(): Promise<number> {
-  //     const result = await this.repository.updateMany({
-  //       where: {
-  //         expiresAt: { lt: new Date() },
-  //         active: 1,
-  //       },
-  //       data: { active: 0 },
-  //     });
-  //     return result.count;
-  //   }
+  async findByDefault(): Promise<Widget | null> {
+    return await this.repository.findFirst({
+      where: {
+        default: true,
+        isDeleted: false,
+      },
+    });
+  }
 
-  //   async deactivateById(id: number): Promise<QrCode> {
-  //     return await this.repository.update({
-  //       where: { id },
-  //       data: { active: 0 },
-  //     });
-  //   }
+  async update(widgetData: UpdateWidget): Promise<Widget> {
+    return await this.repository.update({
+      where: {
+        id: widgetData.widgetId,
+      },
+      data: {
+        title: widgetData.title,
+        subTitle: widgetData.subTitle,
+        image: widgetData.image,
+        fontColor: widgetData.fontColor,
+        default: widgetData.byDefault,
+      },
+    });
+  }
 
-  //   async delete(id: number): Promise<QrCode> {
-  //     return await this.repository.delete({ where: { id } });
-  //   }
+  async delete(id: number): Promise<Widget> {
+    return await this.repository.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+      },
+    });
+  }
 }

@@ -1,6 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { WidgetService } from "../services/widget.service.js";
-import { CreateWidget } from "../validations/widget.validations.js";
+import {
+  CreateWidget,
+  SingleWidget,
+} from "../validations/widget.validations.js";
+import { ResponseUtil } from "../utils/response.util.js";
 
 export class WidgetController {
   private widgetService: WidgetService;
@@ -16,15 +20,41 @@ export class WidgetController {
   ): Promise<void> => {
     try {
       const body: CreateWidget = req.body;
-      const defaultValue = body.byDefault ? 1 : 0;
       const widget = await this.widgetService.create(
         body.title,
         body.subTitle,
         body.image,
         body.fontColor,
-        defaultValue
+        body.byDefault
       );
-      res.status(201).json({ success: true, data: widget });
+      ResponseUtil.success(res, widget, "Widget created successfully");
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getAll = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const widgets = await this.widgetService.getAll();
+      ResponseUtil.success(res, widgets, "Widgets retrieved successfully");
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const body: SingleWidget = req.body;
+      const widgets = await this.widgetService.getById(body.widgetId);
+      ResponseUtil.success(res, widgets, "Single widget retrieved successfully");
     } catch (err) {
       next(err);
     }

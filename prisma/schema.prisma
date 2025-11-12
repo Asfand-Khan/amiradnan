@@ -373,9 +373,10 @@ model ShopBanner {
   targetUrl String?        @map("target_url") @db.VarChar(500)
   sorting   String?
   type      ShopBannerType
-  isAuto    Boolean?       @map("is_auto") @default(false)
+  isAuto    Boolean?       @default(false) @map("is_auto")
   delay     String?
   active    Int            @default(1) @db.TinyInt
+  isDeleted Int?           @default(0) @map("is_deleted")
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @default(now()) @updatedAt @map("updated_at")
 
@@ -502,8 +503,9 @@ model Widget {
   subTitle  String    @map("sub_title")
   image     String    @map("image") @db.LongText
   fontColor FontColor @map("font_color")
-  active    Int       @default(1) @db.TinyInt
-  default   Int       @db.TinyInt
+  active    Boolean   @default(true)
+  default   Boolean   @default(false)
+  isDeleted Boolean?  @default(false) @map("is_deleted")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
@@ -514,6 +516,7 @@ model Promotion {
   id        Int      @id @default(autoincrement())
   image     String   @map("image") @db.LongText
   active    Int      @default(1) @db.TinyInt
+  isDeleted Int?     @default(0) @map("is_deleted")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

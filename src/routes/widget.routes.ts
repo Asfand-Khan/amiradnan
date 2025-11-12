@@ -11,5 +11,6 @@ const widgetController = new WidgetController();
 router.use(authenticateToken);
 
 router.post("/", validateResource(createWidgetSchema), widgetController.create);
+router.get("/", widgetController.getAll);
 
 export default router;
