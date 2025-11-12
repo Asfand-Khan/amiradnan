@@ -5,7 +5,10 @@ import compression from "compression";
 import morgan from "morgan";
 import path from "path";
 import config from "./config/environment.js";
-import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middleware/error.middleware.js";
 import { generalLimiter } from "./middleware/rateLimiter.middleware.js";
 
 // Import routes
@@ -15,6 +18,8 @@ import profileRoutes from "./routes/profile.routes.js";
 import qrCodeRoutes from "./routes/qrCode.routes.js";
 import shopBannerRoutes from "./routes/shopBanner.routes.js";
 import widgetRoutes from "./routes/widget.routes.js";
+import shopUserRoutes from "./routes/shopUser.routes.js";
+import menuRoutes from "./routes/menu.routes.js";
 
 class Server {
   private app: Application;
@@ -82,8 +87,8 @@ class Server {
     this.app.use(`${apiPrefix}/qr-codes`, qrCodeRoutes);
     this.app.use(`${apiPrefix}/shop-banners`, shopBannerRoutes);
     this.app.use(`${apiPrefix}/widgets`, widgetRoutes);
-    // this.app.use(`${apiPrefix}/likes`, likeRoutes);
-    // this.app.use(`${apiPrefix}/notifications`, notificationRoutes);
+    this.app.use(`${apiPrefix}/shop-users`, shopUserRoutes);
+    this.app.use(`${apiPrefix}/menus`, menuRoutes);
 
     // 404 handler
     this.app.use(notFoundHandler);
