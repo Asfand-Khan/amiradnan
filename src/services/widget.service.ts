@@ -20,7 +20,7 @@ export class WidgetService {
   ): Promise<Widget> {
     const byDefaultExists = await this.widgetRepository.findByDefault();
 
-    if (byDefaultExists) {
+    if (byDefaultExists && byDefault) {
       throw new AppError("By default already exists");
     }
 
