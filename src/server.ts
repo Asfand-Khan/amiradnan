@@ -13,6 +13,8 @@ import authRoutes from "./routes/auth.routes.js";
 import customerRoutes from "./routes/customer.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import qrCodeRoutes from "./routes/qrCode.routes.js";
+import shopBannerRoutes from "./routes/shopBanner.routes.js";
+import widgetRoutes from "./routes/widget.routes.js";
 
 class Server {
   private app: Application;
@@ -78,8 +80,8 @@ class Server {
     this.app.use(`${apiPrefix}/customers`, customerRoutes);
     this.app.use(`${apiPrefix}/profiles`, profileRoutes);
     this.app.use(`${apiPrefix}/qr-codes`, qrCodeRoutes);
-    // this.app.use(`${apiPrefix}/follows`, followRoutes);
-    // this.app.use(`${apiPrefix}/messages`, messageRoutes);
+    this.app.use(`${apiPrefix}/shop-banners`, shopBannerRoutes);
+    this.app.use(`${apiPrefix}/widgets`, widgetRoutes);
     // this.app.use(`${apiPrefix}/likes`, likeRoutes);
     // this.app.use(`${apiPrefix}/notifications`, notificationRoutes);
 

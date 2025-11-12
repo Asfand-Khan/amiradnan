@@ -22,45 +22,14 @@ export class WidgetRepository {
     });
   }
 
-  //   async findById(id: number): Promise<QrCode | null> {
-  //     return await this.repository.findUnique({ where: { id } });
-  //   }
+  async findById(id: number): Promise<Widget | null> {
+    return await this.repository.findUnique({ where: { id } });
+  }
 
-  //   async findByCode(codeValue: string): Promise<QrCode | null> {
-  //     return await this.repository.findUnique({ where: { codeValue } });
-  //   }
-
-  //   async findAll(
-  //     page: number = 1,
-  //     limit: number = 20,
-  //     search?: string
-  //   ): Promise<{ qrCodes: QrCode[]; total: number }> {
-  //     const where: any = {};
-
-  //     if (search) {
-  //       where.OR = [{ codeValue: { contains: search } }];
-  //     }
-
-  //     const [qrCodes, total] = await Promise.all([
-  //       this.repository.findMany({
-  //         where,
-  //         include: { customer: true },
-  //         skip: (page - 1) * limit,
-  //         take: limit,
-  //         orderBy: { createdAt: "desc" },
-  //       }),
-  //       this.repository.count({ where }),
-  //     ]);
-
-  //     return { qrCodes, total };
-  //   }
-
-  //   async findByCustomerId(customerId: number): Promise<QrCode[]> {
-  //     return await this.repository.findMany({
-  //       where: { customerId },
-  //       orderBy: { createdAt: "desc" },
-  //     });
-  //   }
+  async findAll(): Promise<Widget[]> {
+    const qrCodes = await this.repository.findMany();
+    return qrCodes;
+  }
 
   //   async deactivateExpiredCodes(): Promise<number> {
   //     const result = await this.repository.updateMany({
