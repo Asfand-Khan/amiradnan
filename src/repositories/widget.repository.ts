@@ -53,6 +53,7 @@ export class WidgetRepository {
         image: widgetData.image,
         fontColor: widgetData.fontColor,
         default: widgetData.byDefault,
+        active: widgetData.active,
       },
     });
   }
