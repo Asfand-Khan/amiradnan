@@ -10,10 +10,11 @@ import {
 const router = Router();
 const promotionController = new PromotionController();
 
+router.get("/", promotionController.getAllPromotions);
+
 router.use(authenticateToken);
 
 router.post("/", validateResource(createPromotionSchema), promotionController.createPromotion);
-router.get("/", promotionController.getAllPromotions);
 router.get("/:id", promotionController.getSinglePromotion);
 router.put("/:id", validateResource(updatePromotionSchema), promotionController.updatePromotion);
 router.delete("/:id", promotionController.deletePromotion);
