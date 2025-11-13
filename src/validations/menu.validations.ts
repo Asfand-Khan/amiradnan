@@ -51,9 +51,89 @@ export const createMenuSchema = z.object({
     .default(1),
 });
 
-export const UpdateMenu = createMenuSchema.partial().extend({
+export const UpdateMenuSchema = createMenuSchema.partial().extend({
   parentId: z.number().int().positive().optional().nullable(),
 });
 
+// Toggle Status Schema
+export const toggleStatusSchema = z.object({
+  isActive: z.boolean({
+    required_error: "Is active is required",
+    invalid_type_error: "Is active must be a boolean",
+  }),
+});
+
+// Menu Sorting Schema
+export const menuSortingSchema = z.object({
+  sortingData: z
+    .array(
+      z.object({
+        id: z.number({
+          required_error: "Menu ID is required",
+          invalid_type_error: "Menu ID must be a number",
+        }),
+        sorting: z.number({
+          required_error: "Sorting is required",
+          invalid_type_error: "Sorting must be a number",
+        }),
+      })
+    )
+    .min(1, "Sorting data must contain at least one item"),
+});
+
+// Query Filters Schema
+export const userFiltersSchema = z.object({
+  locationId: z.string().transform(Number).optional(),
+  role: z.enum(["staff", "manager", "admin"]).optional(),
+  isActive: z
+    .string()
+    .transform((val) => val === "true")
+    .optional(),
+  search: z.string().optional(),
+});
+
+// Menu Rights Update Schema
+export const updateMenuRightsSchema = z.object({
+  menuRights: z
+    .array(
+      z.object({
+        menu_id: z.number({
+          required_error: "Menu ID is required",
+          invalid_type_error: "Menu ID must be a number",
+        }),
+        can_view: z.boolean({
+          required_error: "Can view is required",
+          invalid_type_error: "Can view must be a boolean",
+        }),
+        can_create: z.boolean({
+          required_error: "Can create is required",
+          invalid_type_error: "Can create must be a boolean",
+        }),
+        can_edit: z.boolean({
+          required_error: "Can edit is required",
+          invalid_type_error: "Can edit must be a boolean",
+        }),
+        can_delete: z.boolean({
+          required_error: "Can delete is required",
+          invalid_type_error: "Can delete must be a boolean",
+        }),
+      })
+    )
+    .min(1, "Menu rights must contain at least one item"),
+});
+
+// Single Menu Right Update Schema
+export const updateSingleMenuRightSchema = z.object({
+  can_view: z.boolean().optional(),
+  can_create: z.boolean().optional(),
+  can_edit: z.boolean().optional(),
+  can_delete: z.boolean().optional(),
+});
+
 export type CreateMenu = z.infer<typeof createMenuSchema>;
-export type UpdateMenu = z.infer<typeof UpdateMenu>;
+export type UpdateMenu = z.infer<typeof UpdateMenuSchema>;
+
+export type UpdateMenuRights = z.infer<typeof updateMenuRightsSchema>;
+export type UpdateSingleMenuRight = z.infer<typeof updateSingleMenuRightSchema>;
+export type MenuSorting = z.infer<typeof menuSortingSchema>;
+export type ToggleStatus = z.infer<typeof toggleStatusSchema>;

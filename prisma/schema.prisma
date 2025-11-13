@@ -54,6 +54,7 @@ model Challenge {
   requiredAmount    Decimal       @default(0.00) @map("required_amount") @db.Decimal(12, 2)
   requiredPurchases Int           @default(0) @map("required_purchases")
   durationDays      Int?          @map("duration_days")
+  customerUsage     Int?          @map("customer_usage")
   channel           Channel       @default(any)
   bonusPoints       Int           @default(0) @map("bonus_points")
   bonusPercent      Decimal       @default(0.00) @map("bonus_percent") @db.Decimal(6, 2)
@@ -63,7 +64,8 @@ model Challenge {
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at")
 
-  participants ChallengeParticipant[]
+  participants       ChallengeParticipant[]
+  pointsTransactions PointsTransaction[]
 
   @@map("challenges")
 }
@@ -259,8 +261,9 @@ model PointsExpiryBatch {
 model PointsExpiryDefault {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(200)
-  expiryDays Int?     @map("expiry_days")
+  expiryDays Int      @map("expiry_days")
   active     Int      @default(1) @db.TinyInt
+  createdBy  Int
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -285,18 +288,20 @@ model PointsManualAdjustment {
 }
 
 model PointsTransaction {
-  id              Int             @id @default(autoincrement())
-  customerId      Int             @map("customer_id")
-  amount          Int
-  type            TransactionType
-  referenceId     String?         @map("reference_id") @db.VarChar(255)
-  locationId      Int?            @map("location_id")
-  orderAmount     Decimal?        @map("order_amount") @db.Decimal(12, 2)
-  productCategory String?         @map("product_category") @db.VarChar(100)
-  note            String?         @db.Text
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at")
+  id          Int             @id @default(autoincrement())
+  customerId  Int             @map("customer_id")
+  challengeId Int?            @map("challenge_id")
+  points      Int
+  type        TransactionType
+  referenceId String?         @map("reference_id") @db.VarChar(255)
+  locationId  Int?            @map("location_id")
+  orderAmount Decimal?        @map("order_amount") @db.Decimal(12, 2)
+  note        String?         @db.Text
+  expiryDate  String          @map("expiry_date")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at")
 
+  challenge     Challenge?          @relation(fields: [challengeId], references: [id])
   customer      Customer            @relation(fields: [customerId], references: [id])
   location      Location?           @relation(fields: [locationId], references: [id])
   expiryBatches PointsExpiryBatch[]
@@ -392,6 +397,7 @@ model ShopUser {
   role       UserRole @default(staff)
   password   String   @map("password") @db.VarChar(255)
   isActive   Boolean  @default(true) @map("is_active")
+  isDeleted  Boolean  @default(false) @map("is_deleted")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -515,8 +521,8 @@ model Widget {
 model Promotion {
   id        Int      @id @default(autoincrement())
   image     String   @map("image") @db.LongText
-  active    Int      @default(1) @db.TinyInt
-  isDeleted Int?     @default(0) @map("is_deleted")
+  active    Boolean  @default(true)
+  isDeleted Boolean  @default(false) @map("is_deleted")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

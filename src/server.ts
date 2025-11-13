@@ -20,6 +20,7 @@ import shopBannerRoutes from "./routes/shopBanner.routes.js";
 import widgetRoutes from "./routes/widget.routes.js";
 import shopUserRoutes from "./routes/shopUser.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
+import promotionRoutes from "./routes/promotion.routes.js";
 
 class Server {
   private app: Application;
@@ -89,6 +90,7 @@ class Server {
     this.app.use(`${apiPrefix}/widgets`, widgetRoutes);
     this.app.use(`${apiPrefix}/shop-users`, shopUserRoutes);
     this.app.use(`${apiPrefix}/menus`, menuRoutes);
+    this.app.use(`${apiPrefix}/promotions`, promotionRoutes);
 
     // 404 handler
     this.app.use(notFoundHandler);
