@@ -2,10 +2,7 @@ import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { validateResource } from "../middleware/validation.middleware.js";
 import { PromotionController } from "../controllers/promotion.controller.js";
-import {
-  createPromotionSchema,
-  updatePromotionSchema,
-} from "../validations/promotions.validations.js";
+import { createPromotionSchema, updatePromotionSchema } from "../validations/promotions.validations.js";
 
 const router = Router();
 const promotionController = new PromotionController();

@@ -1,8 +1,11 @@
-import { Router } from 'express';
-import { CustomerController } from '../controllers/customer.controller.js';
-import { authenticateToken } from '../middleware/auth.middleware.js';
-import { validateResource } from '../middleware/validation.middleware.js';
-import { customerByIdSchema, customerFilterSchema } from '../validations/customer.validaions.js';
+import { Router } from "express";
+import { CustomerController } from "../controllers/customer.controller.js";
+import { authenticateToken } from "../middleware/auth.middleware.js";
+import { validateResource } from "../middleware/validation.middleware.js";
+import {
+  customerByIdSchema,
+  customerFilterSchema,
+} from "../validations/customer.validaions.js";
 // import { upload } from '../middleware/upload.middleware';
 
 const router = Router();
@@ -17,7 +20,7 @@ router.use(authenticateToken);
  * @access  Private
  */
 router.post(
-  '/',
+  "/",
   validateResource(customerFilterSchema),
   customerController.getAllCustomers
 );
@@ -27,6 +30,17 @@ router.post(
  * @desc    Get user by ID
  * @access  Private
  */
-router.post('/single', validateResource(customerByIdSchema) ,customerController.getUserById);
+router.post(
+  "/single",
+  validateResource(customerByIdSchema),
+  customerController.getUserById
+);
+
+/**
+ * @route   GET /api/users/
+ * @desc    Get user by ID
+ * @access  Private
+ */
+router.get("/", customerController.getCustomerDetails);
 
 export default router;

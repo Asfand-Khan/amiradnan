@@ -43,6 +43,10 @@ export class WidgetService {
     return await this.widgetRepository.findById(id);
   }
 
+  async getByDefault(): Promise<Widget | null> {
+    return await this.widgetRepository.findByDefault();
+  }
+
   async update(widgetData: UpdateWidget) {
     const widget = await this.widgetRepository.findById(widgetData.widgetId);
     if (!widget) throw new Error("Widget not found");

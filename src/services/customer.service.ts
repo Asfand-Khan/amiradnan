@@ -213,4 +213,8 @@ export class CustomerService {
       updatedAt: updated?.updatedAt,
     };
   }
+
+  async updateProfileCompleted(customerId: number) {
+    return await this.customerRepository.updateProfileCompleted(customerId);
+  }
 }
