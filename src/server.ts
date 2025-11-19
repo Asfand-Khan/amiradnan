@@ -23,6 +23,7 @@ import menuRoutes from "./routes/menu.routes.js";
 import promotionRoutes from "./routes/promotion.routes.js";
 import tierRoutes from "./routes/tier.routes.js";
 import challengeRoutes from "./routes/challenge.routes.js";
+import rewardRoutes from "./routes/rewards.routes.js";
 
 class Server {
   private app: Application;
@@ -95,6 +96,7 @@ class Server {
     this.app.use(`${apiPrefix}/promotions`, promotionRoutes);
     this.app.use(`${apiPrefix}/tiers`, tierRoutes);
     this.app.use(`${apiPrefix}/challenges`, challengeRoutes);
+    this.app.use(`${apiPrefix}/rewards`, rewardRoutes);
 
     // 404 handler
     this.app.use(notFoundHandler);

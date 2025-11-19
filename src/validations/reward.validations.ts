@@ -7,21 +7,19 @@ export const createRewardSchema = z.object({
 });
 
 export const updateRewardSchema = createRewardSchema.partial().extend({
-  id: z.number().int().positive("ID is required"),
+  rewardId: z.number().int().positive("Reward ID is required"),
 });
 
 export const singleRewardSchema = z.object({
-  id: z.number().int().positive("ID is required"),
+  rewardId: z.number().int().positive("Reward ID is required"),
 });
 
 export const listRewardsSchema = z.object({
-  query: z.object({
-    active: z
-      .string()
-      .transform((val) => val === "true")
-      .optional(),
-    search: z.string().optional(),
-  }),
+  active: z
+    .string()
+    .transform((val) => val === "true")
+    .optional(),
+  search: z.string().optional(),
 });
 
 // Types

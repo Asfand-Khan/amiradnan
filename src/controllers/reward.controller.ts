@@ -1,0 +1,191 @@
+import { Request, Response, NextFunction } from "express";
+import { RewardService } from "../services/reward.service.js";
+import {
+  CreateRewardInput,
+  DeleteRewardInput,
+  GetRewardInput,
+  ListRewardsInput,
+  RestoreRewardInput,
+  UpdateRewardInput,
+} from "../validations/reward.validations.js";
+import { ResponseUtil } from "../utils/response.util.js";
+import { AppError } from "../middleware/error.middleware.js";
+
+export class RewardController {
+  private rewardService: RewardService;
+
+  constructor() {
+    this.rewardService = new RewardService();
+  }
+
+  create = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: CreateRewardInput = req.body;
+      const reward = await this.rewardService.createReward(body);
+      ResponseUtil.success(res, reward, "Reward created successfully", 201);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: GetRewardInput = req.body;
+      const reward = await this.rewardService.getRewardById(body.rewardId);
+      ResponseUtil.success(res, reward, "Reward fetched successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: ListRewardsInput = req.body;
+      const rewards = await this.rewardService.getAllRewards({
+        active: body.active,
+        search: body.search,
+      });
+      ResponseUtil.success(res, rewards, "Rewards fetched successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  update = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: UpdateRewardInput = req.body;
+      const reward = await this.rewardService.updateReward(
+        body.rewardId,
+        req.body
+      );
+      ResponseUtil.success(res, reward, "Reward updated successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: DeleteRewardInput = req.body;
+      await this.rewardService.deleteReward(body.rewardId);
+      ResponseUtil.success(res, null, "Reward deleted successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  restore = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: RestoreRewardInput = req.body;
+      const reward = await this.rewardService.restoreReward(body.rewardId);
+      ResponseUtil.success(res, reward, "Reward restored successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  hardDelete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: DeleteRewardInput = req.body;
+      await this.rewardService.hardDeleteReward(body.rewardId);
+      ResponseUtil.success(res, null, "Reward deleted successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getActiveRewards = async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const rewards = await this.rewardService.getActiveRewards();
+      ResponseUtil.success(res, rewards, "Rewards fetched successfully", 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: GetRewardInput = req.body;
+      const stats = await this.rewardService.getRewardStats(body.rewardId);
+      ResponseUtil.success(
+        res,
+        stats,
+        "Rewards stats fetched successfully",
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  toggleStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body: GetRewardInput = req.body;
+      const reward = await this.rewardService.toggleRewardStatus(body.rewardId);
+      ResponseUtil.success(
+        res,
+        reward,
+        `Reward ${reward.active ? "activated" : "deactivated"} successfully`,
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  bulkUpdateStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { rewardIds, active } = req.body;
+
+      if (!Array.isArray(rewardIds) || rewardIds.length === 0) {
+        throw new AppError("rewardIds array is required", 400);
+      }
+
+      if (typeof active !== "boolean") {
+        throw new AppError("active boolean is required", 400);
+      }
+
+      const result = await this.rewardService.bulkUpdateStatus(
+        rewardIds,
+        active
+      );
+      ResponseUtil.success(
+        res,
+        result,
+        `${result.updated} rewards updated successfully`,
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchRewards = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { search } = req.query;
+
+      if (!search || typeof search !== "string") {
+        throw new AppError("search query parameter is required", 400);
+      }
+
+      const rewards = await this.rewardService.searchRewards(search);
+
+      ResponseUtil.success(
+        res,
+        rewards,
+        `Search rewards fetched successfully`,
+        200
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+}
