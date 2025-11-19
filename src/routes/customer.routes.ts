@@ -41,5 +41,11 @@ router.post(
  * @access  Private
  */
 router.get("/", customerController.getCustomerDetails);
+/**
+ * @route   GET /api/customers/
+ * @desc    Get customer journey for membership
+ * @access  Private
+ */
+router.get("/journey", customerController.getCustomerJourney);
 
 export default router;

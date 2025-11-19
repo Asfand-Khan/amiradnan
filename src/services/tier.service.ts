@@ -1,6 +1,7 @@
 import { Tier, Prisma } from "@prisma/client";
 import { TierRepository } from "../repositories/tier.repository.js";
 import { AppError } from "../middleware/error.middleware.js";
+import { saveBase64Image } from "../utils/file.util.js";
 export class TierService {
   private tierRepository: TierRepository;
 
@@ -14,6 +15,8 @@ export class TierService {
     description?: string;
     displayOrder: number;
     active: number;
+    rewards: number[];
+    image: string;
   }): Promise<Tier> {
     // Check if tier with same threshold already exists
     const existingTier = await this.tierRepository.findByThreshold(
@@ -24,12 +27,21 @@ export class TierService {
       throw new AppError("A tier with this threshold already exists");
     }
 
+    let image: string | null = null;
+    if (data.image) {
+      image = await saveBase64Image(data.image, "tiers");
+    }
+
     const tierData: Prisma.TierCreateInput = {
       name: data.name,
       threshold: data.threshold,
       description: data.description,
       displayOrder: data.displayOrder,
       active: data.active,
+      image,
+      tierRewards: {
+        create: data.rewards.map((rewardId) => ({ rewardId })),
+      },
     };
 
     return await this.tierRepository.create(tierData);
@@ -101,6 +113,8 @@ export class TierService {
       description?: string;
       displayOrder: number;
       active: number;
+      rewards: number[];
+      image: string;
     }>
   ): Promise<Tier> {
     // Check if tier exists
@@ -123,6 +137,11 @@ export class TierService {
 
     const updateData: Prisma.TierUpdateInput = {};
 
+    if (data.image !== undefined) {
+      const image = await saveBase64Image(data.image, "tiers");
+      updateData.image = image;
+    }
+
     if (data.name !== undefined) updateData.name = data.name;
     if (data.threshold !== undefined) updateData.threshold = data.threshold;
     if (data.description !== undefined)
@@ -130,6 +149,12 @@ export class TierService {
     if (data.displayOrder !== undefined)
       updateData.displayOrder = data.displayOrder;
     if (data.active !== undefined) updateData.active = data.active;
+    if (data.rewards !== undefined) {
+      updateData.tierRewards = {
+        deleteMany: {},
+        create: data.rewards.map((rewardId) => ({ rewardId })),
+      };
+    }
 
     return await this.tierRepository.update(id, updateData);
   }
@@ -286,7 +311,7 @@ export class TierService {
     if (!activeTiers || activeTiers.length === 0) {
       return null;
     }
-    const sortedTiers = activeTiers.sort((a, b) => b.threshold - a.threshold); // Sort tiers by threshold in descending order (highest first)    
+    const sortedTiers = activeTiers.sort((a, b) => b.threshold - a.threshold); // Sort tiers by threshold in descending order (highest first)
     const qualifyingTier = sortedTiers.find((tier) => points >= tier.threshold); // Find the first tier where points meet or exceed the threshold
     return qualifyingTier || null;
   }

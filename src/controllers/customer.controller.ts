@@ -225,4 +225,22 @@ export class CustomerController {
       next(error);
     }
   };
+
+  getCustomerJourney = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const customerId = req.user!.id;
+      const availablePoints = await this.pointsTransactionService.getAvailablePoints(customerId);
+      const tier = await this.tierService.getAllActiveTiers();
+      ResponseUtil.success(res, {
+        availablePoints,
+        tier,
+      }, "Customer journey fetched successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -38,8 +38,21 @@ export class TierRepository {
     return { data, total };
   }
 
-  async findAllActive(): Promise<Tier[]> {
-    return await this.repository.findMany({ where: { active: 1, isDeleted: false } });
+  async findAllActive(): Promise<any[]> {
+    return await this.repository.findMany({
+      where: { active: 1, isDeleted: false },
+      include: {
+        tierRewards: {
+          select: {
+            reward: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async update(id: number, data: Prisma.TierUpdateInput): Promise<Tier> {
@@ -52,9 +65,9 @@ export class TierRepository {
   async delete(id: number): Promise<Tier> {
     return await this.repository.update({
       where: { id },
-      data:{
-        isDeleted: true
-      }
+      data: {
+        isDeleted: true,
+      },
     });
   }
 
