@@ -6,12 +6,12 @@ import {
   EnrollCustomerInput,
   GetChallengeInput,
   GetCustomerChallengesInput,
-  ListChallengesInput,
   UpdateChallengeInput,
   UpdateProgressInput,
 } from "../validations/challenge.validations.js";
 import { ResponseUtil } from "../utils/response.util.js";
 import { ChallengeType } from "@prisma/client";
+import { AuthRequest } from "../types/index.js";
 
 export class ChallengeController {
   private challengeService: ChallengeService;
@@ -84,35 +84,14 @@ export class ChallengeController {
   };
 
   getAll = async (
-    req: Request,
+    req: AuthRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const body: ListChallengesInput = req.body;
-      const result = await this.challengeService.getAllChallenges({
-        page: body.page,
-        limit: body.limit,
-        type: body.type,
-        channel: body.channel,
-        active: body.active,
-        search: body.search,
-      });
-
-      ResponseUtil.success(
-        res,
-        {
-          data: result.data,
-          meta: {
-            total: result.total,
-            page: result.page,
-            totalPages: result.totalPages,
-            limit: req.query.limit,
-          },
-        },
-        "All challenges fetched successfully",
-        200
-      );
+      const customerId = req.user!.id; // Here the token must be of customer
+      const challenges = await this.challengeService.getAllActiveChallenges(customerId);
+      ResponseUtil.success(res, challenges, "All challenges fetched successfully", 200);
     } catch (error) {
       next(error);
     }

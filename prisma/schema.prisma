@@ -298,7 +298,7 @@ model PointsTransaction {
   locationId  Int?            @map("location_id")
   orderAmount Decimal?        @map("order_amount") @db.Decimal(12, 2)
   note        String?         @db.Text
-  expiryDate  DateTime          @map("expiry_date")
+  expiryDate  DateTime        @map("expiry_date")
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at")
 
@@ -358,18 +358,32 @@ model Redemption {
 }
 
 model Reward {
-  id             Int      @id @default(autoincrement())
-  name           String   @db.VarChar(200)
-  description    String?  @db.Text
-  requiredPoints Int      @map("required_points")
-  stock          Int      @default(0)
-  active         Int      @default(1) @db.TinyInt
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  active      Boolean  @default(true) @db.TinyInt
+  isDeleted   Boolean  @default(false) @map("is_deleted") @db.TinyInt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   redemptions Redemption[]
+  tierRewards TierReward[]
 
   @@map("rewards")
+}
+
+model TierReward {
+  id        Int      @id @default(autoincrement())
+  tierId    Int      @map("tier_id")
+  rewardId  Int      @map("reward_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  reward Reward @relation(fields: [rewardId], references: [id])
+  tier   Tier   @relation(fields: [tierId], references: [id])
+
+  @@index([tierId], map: "tier_id_idx")
+  @@map("tier_reward")
 }
 
 model ShopBanner {
@@ -488,6 +502,7 @@ model Tier {
 
   customerTiers       CustomerTier[]
   notificationTargets NotificationTarget[]
+  tierRewards         TierReward[]
 
   @@map("tiers")
 }

@@ -38,6 +38,32 @@ export class ChallengeRepository {
     return { data, total };
   }
 
+  async findAllActive(customerId: number): Promise<Challenge[]> {
+    const query = `
+      SELECT
+	      c.id,
+	      c.name,
+	      (CASE WHEN cp.completed = 1 THEN 1 ELSE 0 END) AS is_completed,
+	      c.description,
+	      c.type,
+	      c.required_amount,
+	      c.required_purchases,
+	      c.bonus_points,
+	      c.start_at,
+	      c.end_at 
+      FROM
+	      challenges c
+	    LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id 
+	    AND cp.customer_id = ${customerId} 
+      WHERE
+	      c.isDeleted = false 
+	      AND c.active = true 
+      ORDER BY
+	      c.created_at desc
+    `;
+    return await prisma.$queryRawUnsafe(query);
+  }
+
   async update(
     id: number,
     data: Prisma.ChallengeUpdateInput
@@ -223,41 +249,29 @@ export class ChallengeRepository {
     };
   }
 
-//   SELECT *
-// FROM (
-//     SELECT 
-//         c.*,
-//         ROW_NUMBER() OVER (PARTITION BY c.type ORDER BY c.id DESC) AS rn
-//     FROM challenges c
-//     WHERE c.active = 1
-//       AND c.isDeleted = 0
-// ) AS t
-// WHERE t.rn = 1;
-
-async getLatestEachTypeChallenges() {
+  async getLatestEachTypeChallenges() {
     const query = `
     SELECT 
-    t.id,
-	t.name,
-	t.description,
-	t.type,
-	t.required_amount,
-	t.required_purchases,
-	t.duration_days,
-	t.channel,
-	t.bonus_points,
-	t.start_at,
-	t.end_at
+      t.id,
+	    t.name,
+	    t.description,
+	    t.type,
+	    t.required_amount,
+	    t.required_purchases,
+	    t.duration_days,
+	    t.channel,
+	    t.bonus_points,
+	    t.start_at,
+	    t.end_at
     FROM (
-     SELECT 
-         c.*,
-         ROW_NUMBER() OVER (PARTITION BY c.type ORDER BY c.id DESC) AS rn
-     FROM challenges c
-     WHERE c.active = 1
-       AND c.isDeleted = 0
+      SELECT 
+        c.*,
+        ROW_NUMBER() OVER (PARTITION BY c.type ORDER BY c.id DESC) AS rn
+      FROM challenges c
+      WHERE c.active = 1 AND c.isDeleted = 0
       ) AS t
-    WHERE t.rn = 1;`
+    WHERE t.rn = 1;`;
 
-    return await prisma.$queryRawUnsafe(query) as any[];
+    return (await prisma.$queryRawUnsafe(query)) as any[];
   }
 }

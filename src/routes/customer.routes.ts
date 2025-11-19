@@ -6,7 +6,6 @@ import {
   customerByIdSchema,
   customerFilterSchema,
 } from "../validations/customer.validaions.js";
-// import { upload } from '../middleware/upload.middleware';
 
 const router = Router();
 const customerController = new CustomerController();

@@ -116,6 +116,10 @@ export class ChallengeService {
     };
   }
 
+  async getAllActiveChallenges(customerId: number): Promise<Challenge[]> {
+    return await this.challengeRepository.findAllActive(customerId);
+  }
+
   async updateChallenge(
     id: number,
     data: Partial<{
