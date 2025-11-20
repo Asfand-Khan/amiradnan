@@ -208,12 +208,12 @@ export class CustomerController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = req.user!.id;
+      const customerId = req.user!.id; // Here Token Must Be Of Customer
       const widget = await this.widgetService.getByDefault();
-      const availablePoints = await this.pointsTransactionService.getAvailablePoints(userId);
+      const availablePoints = await this.pointsTransactionService.getAvailablePoints(customerId);
       const tier = await this.tierService.calculateTierByPoints(availablePoints);
       const challenges = await this.challengeService.getEachTypeLatestChallenge();
-      const transactions = await this.pointsTransactionService.getCustomerTransaction(userId);
+      const transactions = await this.pointsTransactionService.getCustomerTransaction(customerId);
       ResponseUtil.success(res, {
         widget,
         availablePoints,

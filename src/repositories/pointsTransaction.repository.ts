@@ -475,6 +475,20 @@ export class PointsTransactionRepository {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        challenge: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     const currentTime = new Date();
