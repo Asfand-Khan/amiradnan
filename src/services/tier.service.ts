@@ -315,4 +315,39 @@ export class TierService {
     const qualifyingTier = sortedTiers.find((tier) => points >= tier.threshold); // Find the first tier where points meet or exceed the threshold
     return qualifyingTier || null;
   }
+
+  async getNextTierInfo(customerPoints: number): Promise<{
+    nextTier: string | null;
+    pointsRequired: number | null;
+  }> {
+    const tiers = await this.tierRepository.getActiveTiers(); // Fetch all active tiers sorted by threshold ASC
+    if (!tiers || tiers.length === 0) {
+      return { nextTier: null, pointsRequired: null };
+    }
+
+    const sorted = tiers.sort((a, b) => a.threshold - b.threshold); // Sort by threshold ascending
+    const nextTier = sorted.find((tier) => tier.threshold > customerPoints); // Find the next tier where threshold is greater than customer points
+
+    // If customer already in highest tier
+    if (!nextTier) {
+      return { nextTier: null, pointsRequired: null };
+    }
+
+    const pointsRequired = nextTier.threshold - customerPoints; // Points required = difference between threshold and customerPoints
+    return {
+      nextTier: nextTier.name,
+      pointsRequired,
+    };
+  }
+
+  async getMaxThresholdValue(): Promise<number> {
+    const tiers = await this.tierRepository.getActiveTiers(); // Fetch all active tiers
+
+    // Sort tiers by threshold and pick the highest one
+    const maxThreshold = tiers
+      .map((tier) => tier.threshold)
+      .sort((a, b) => b - a)[0];
+
+    return maxThreshold;
+  }
 }

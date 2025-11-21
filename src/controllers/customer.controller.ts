@@ -234,9 +234,13 @@ export class CustomerController {
     try {
       const customerId = req.user!.id;
       const availablePoints = await this.pointsTransactionService.getAvailablePoints(customerId);
+      const totalPoints = await this.tierService.getMaxThresholdValue();
       const tier = await this.tierService.getAllActiveTiers();
+      const nextTier = await this.tierService.getNextTierInfo(availablePoints);
       ResponseUtil.success(res, {
         availablePoints,
+        totalPoints,
+        nextTier,
         tier,
       }, "Customer journey fetched successfully");
     } catch (error) {
