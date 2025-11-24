@@ -113,13 +113,25 @@ class Server {
   public async start(): Promise<void> {
     try {
       // Start server
-      this.app.listen(config.server.port, () => {
+      const server = this.app.listen(config.server.port, () => {
         console.log("═══════════════════════════════════════════════════════");
         console.log(`🚀 Server running in ${config.server.nodeEnv} mode`);
         console.log(`📡 HTTP Server: http://localhost:${config.server.port}`);
         console.log(`📚 API Prefix: ${config.server.apiPrefix}`);
         console.log("═══════════════════════════════════════════════════════");
       });
+
+      // Graceful shutdown
+      const shutdown = () => {
+        console.log("Received kill signal, shutting down gracefully");
+        server.close(() => {
+          console.log("Closed out remaining connections");
+          process.exit(0);
+        });
+      };
+
+      process.on("SIGTERM", shutdown);
+      process.on("SIGINT", shutdown);
     } catch (error) {
       console.error("❌ Failed to start server:", error);
       process.exit(1);
@@ -133,13 +145,15 @@ server.start();
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (reason: Error) => {
-  console.error("Unhandled Rejection:", reason);
+  console.error("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.error(reason.name, reason.message);
   process.exit(1);
 });
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error: Error) => {
-  console.error("Uncaught Exception:", error);
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.error(error.name, error.message);
   process.exit(1);
 });
 
