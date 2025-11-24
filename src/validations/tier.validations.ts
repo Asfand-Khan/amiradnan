@@ -24,7 +24,7 @@ export const createTierSchema = z.object({
 });
 
 export const updateTierSchema = z.object({
-  tierId: z.string().regex(/^\d+$/, "Invalid ID format").transform(Number),
+  tierId: z.number().int().positive("Tier ID is required"),
   name: z.string().min(1).max(100).optional(),
   threshold: z.number().int().min(0).optional(),
   description: z.string().optional(),
@@ -51,7 +51,7 @@ export const updateTierSchema = z.object({
 });
 
 export const getTierSchema = z.object({
-  tierId: z.string().regex(/^\d+$/, "Invalid ID format").transform(Number),
+  tierId: z.number().int().positive("Tier ID is required"),
 });
 
 export const listTiersSchema = z.object({
