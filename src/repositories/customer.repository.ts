@@ -186,4 +186,38 @@ export class CustomerRepository {
     });
     return updated;
   }
+
+  async updateDeviceToken(customerId: number, token: string): Promise<void> {
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: { deviceToken: token },
+    });
+  }
+
+  async clearDeviceToken(customerId: number): Promise<void> {
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: { deviceToken: null },
+    });
+  }
+
+  async getDeviceToken(customerId: number): Promise<string | null> {
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { deviceToken: true },
+    });
+    return customer?.deviceToken ?? null;
+  }
+
+  async getAllActiveDeviceTokens(): Promise<string[]> {
+    const customers = await prisma.customer.findMany({
+      where: {
+        deviceToken: { gt: "" },
+        isActive: 1,
+      },
+      select: { deviceToken: true },
+    });
+    
+    return customers.map((c) => c.deviceToken).filter((token): token is string => Boolean(token && token.length > 0));
+  }
 }

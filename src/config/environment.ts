@@ -12,8 +12,7 @@ export const config = {
     url: process.env.SERVER_URL || "http://localhost:3000/api/v1",
   },
   database: {
-    database_url:
-      process.env.DATABASE_URL,
+    database_url: process.env.DATABASE_URL,
   },
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || "your_access_secret",
@@ -35,7 +34,9 @@ export const config = {
     ).split(","),
   },
   cors: {
-    origin: (process.env.CORS_ORIGIN || "http://localhost:3001").split(","),
+    origin: (
+      process.env.CORS_ORIGIN || "http://localhost:3001,http://localhost:3000"
+    ).split(","),
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10),

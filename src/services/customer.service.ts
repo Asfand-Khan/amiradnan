@@ -217,4 +217,22 @@ export class CustomerService {
   async updateProfileCompleted(customerId: number) {
     return await this.customerRepository.updateProfileCompleted(customerId);
   }
+
+  async saveDeviceToken(customerId: number, token: string): Promise<string> {
+    await this.customerRepository.updateDeviceToken(customerId, token);
+    return "Device token updated successfully";
+  }
+
+  async removeDeviceToken(customerId: number): Promise<string> {
+    await this.customerRepository.clearDeviceToken(customerId);
+    return "Device token removed successfully";
+  }
+
+  async fetchDeviceToken(customerId: number): Promise<string | null> {
+    return await this.customerRepository.getDeviceToken(customerId);
+  }
+
+  async fetchAllActiveDeviceToken(): Promise<string[]> {
+    return await this.customerRepository.getAllActiveDeviceTokens();
+  }
 }
