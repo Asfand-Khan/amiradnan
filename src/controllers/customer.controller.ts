@@ -1,7 +1,8 @@
-import { Response, NextFunction } from "express";
+import { Response } from "express";
 import { CustomerService } from "../services/customer.service.js";
 import { ResponseUtil } from "../utils/response.util.js";
 import { AuthRequest } from "../types/index.js";
+import { catchAsync } from "../utils/catchAsync.js";
 import {
   CreateCustomerMeasurement,
   CustomerById,
@@ -29,222 +30,152 @@ export class CustomerController {
     this.widgetService = new WidgetService();
   }
 
-  getProfile = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = req.user!.id;
-      const profile = await this.customerService.getProfile(userId);
-      ResponseUtil.success(res, profile);
-    } catch (error) {
-      next(error);
-    }
-  };
+  getProfile = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const profile = await this.customerService.getProfile(userId);
+    ResponseUtil.success(res, profile);
+  });
 
-  updateProfile = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = req.user!.id;
-      const data: UpdateCustomer = req.body;
-      const profile = await this.customerService.updateProfile(userId, data);
-      ResponseUtil.success(res, profile, "Profile updated successfully");
-    } catch (error) {
-      next(error);
-    }
-  };
+  updateProfile = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const data: UpdateCustomer = req.body;
+    const profile = await this.customerService.updateProfile(userId, data);
+    ResponseUtil.success(res, profile, "Profile updated successfully");
+  });
 
-  // uploadProfilePicture = async (
-  //   req: AuthRequest,
-  //   res: Response,
-  //   next: NextFunction
-  // ): Promise<void> => {
-  //   try {
-  //     const userId = req.user!.id;
+  getUserById = catchAsync(async (req: AuthRequest, res: Response) => {
+    const { customerId }: CustomerById = req.body;
+    const user = await this.customerService.getCustomerById(customerId);
+    ResponseUtil.success(res, user);
+  });
 
-  //     if (!req.file) {
-  //       ResponseUtil.error(res, "No file uploaded", 400);
-  //       return;
-  //     }
+  getAllCustomers = catchAsync(async (req: AuthRequest, res: Response) => {
+    const query: CustomerFilter = {
+      page: req.body.page ? parseInt(req.body.page as string) : 1,
+      limit: req.body.limit ? parseInt(req.body.limit as string) : 20,
+      search: req.body.search as string,
+    };
 
-  //     const filePath = `/uploads/${req.file.filename}`;
-  //     const result = await this.userService.updateProfilePicture(
-  //       userId,
-  //       filePath
-  //     );
-  //     ResponseUtil.success(
-  //       res,
-  //       result,
-  //       "Profile picture uploaded successfully"
-  //     );
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // };
+    const users = await this.customerService.getAllCustomers(query);
+    ResponseUtil.success(res, users);
+  });
 
-  getUserById = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { customerId }: CustomerById = req.body;
-      const user = await this.customerService.getCustomerById(customerId);
-      ResponseUtil.success(res, user);
-    } catch (error) {
-      next(error);
-    }
-  };
+  createMeasurement = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const data: CreateCustomerMeasurement = req.body;
+    const measurements = await this.customerService.createMeasurement(
+      userId,
+      data
+    );
 
-  getAllCustomers = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      console.log(req.user!.id);
-      const query: CustomerFilter = {
-        page: req.body.page ? parseInt(req.body.page as string) : 1,
-        limit: req.body.limit ? parseInt(req.body.limit as string) : 20,
-        search: req.body.search as string,
-      };
+    if (
+      measurements &&
+      measurements.length !== null &&
+      measurements.width !== null &&
+      measurements.waist !== null &&
+      measurements.hip !== null
+    ) {
+      this.customerService.updateProfileCompleted(measurements.customer_id); // mark profile completed
 
-      const users = await this.customerService.getAllCustomers(query);
-      ResponseUtil.success(res, users);
-    } catch (error) {
-      next(error);
-    }
-  };
+      const challenge = await this.challengeService.getChallengeByType(
+        ChallengeType.profile_based
+      ); // check if the profile based challenge is active
+      if (challenge) {
+        const pointsExpiry =
+          await this.pointsTransactionService.pointsExpiryDefault(); // get default expiry days or duration
+        await this.challengeService.enrollCustomer(
+          challenge.id,
+          measurements.customer_id,
+          1,
+          challenge.customerUsage === 1 ? 1 : 0
+        ); // enroll the customer to the challenge
+        await this.pointsTransactionService.creditPoints({
+          customerId: measurements.customer_id,
+          points: challenge.bonusPoints,
+          type: TransactionType.profile_complete,
+          challengeId: challenge.id,
+          expiryDays: pointsExpiry ? pointsExpiry.expiryDays : 365,
+        }); // credit the respective points to the customer
 
-  createMeasurement = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = req.user!.id;
-      const data: CreateCustomerMeasurement = req.body;
-      const measurements = await this.customerService.createMeasurement(userId, data);
-
-      if (measurements && measurements.length !== null && measurements.width !== null && measurements.waist !== null && measurements.hip !== null) {
-        this.customerService.updateProfileCompleted(measurements.customer_id); // mark profile completed
-        
-        const challenge = await this.challengeService.getChallengeByType(ChallengeType.profile_based); // check if the profile based challenge is active
-        if (challenge) {
-          const pointsExpiry = await this.pointsTransactionService.pointsExpiryDefault(); // get default expiry days or duration
-          await this.challengeService.enrollCustomer(challenge.id, measurements.customer_id, 1, challenge.customerUsage === 1 ? 1 : 0); // enroll the customer to the challenge
-          await this.pointsTransactionService.creditPoints({
-              customerId: measurements.customer_id,
-              points: challenge.bonusPoints,
-              type: TransactionType.profile_complete,
-              challengeId: challenge.id,
-              expiryDays: pointsExpiry ? pointsExpiry.expiryDays : 365,
-            }); // credit the respective points to the customer
-
-          const availablePoints = await this.pointsTransactionService.getAvailablePoints(measurements.customer_id); // calculate available points
-          await this.tierService.autoAssignTierToCustomer(measurements.customer_id,availablePoints); // assign customer to a tier
-        }
+        const availablePoints =
+          await this.pointsTransactionService.getAvailablePoints(
+            measurements.customer_id
+          ); // calculate available points
+        await this.tierService.autoAssignTierToCustomer(
+          measurements.customer_id,
+          availablePoints
+        ); // assign customer to a tier
       }
-
-      ResponseUtil.success(
-        res,
-        measurements,
-        "Profile Measurements created successfully"
-      );
-    } catch (error) {
-      next(error);
     }
-  };
 
-  getMeasurements = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = req.user!.id;
-      const profile = await this.customerService.getMeasurementsByCustomerId(
-        userId
-      );
-      ResponseUtil.success(
-        res,
-        profile,
-        "Profile Measurements fetched successfully"
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+    ResponseUtil.success(
+      res,
+      measurements,
+      "Profile Measurements created successfully"
+    );
+  });
 
-  updateMeasurement = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = req.user!.id;
-      const data: Partial<CreateCustomerMeasurement> = req.body;
-      const profile = await this.customerService.updateMeasurement(
-        userId,
-        data
-      );
-      ResponseUtil.success(
-        res,
-        profile,
-        "Profile Measurements updated successfully"
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  getMeasurements = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const profile = await this.customerService.getMeasurementsByCustomerId(
+      userId
+    );
+    ResponseUtil.success(
+      res,
+      profile,
+      "Profile Measurements fetched successfully"
+    );
+  });
 
-  getCustomerDetails = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const customerId = req.user!.id; // Here Token Must Be Of Customer
-      const widget = await this.widgetService.getByDefault();
-      const availablePoints = await this.pointsTransactionService.getAvailablePoints(customerId);
-      const tier = await this.tierService.calculateTierByPoints(availablePoints);
-      const challenges = await this.challengeService.getEachTypeLatestChallenge();
-      const transactions = await this.pointsTransactionService.getCustomerTransaction(customerId);
-      ResponseUtil.success(res, {
+  updateMeasurement = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const data: Partial<CreateCustomerMeasurement> = req.body;
+    const profile = await this.customerService.updateMeasurement(userId, data);
+    ResponseUtil.success(
+      res,
+      profile,
+      "Profile Measurements updated successfully"
+    );
+  });
+
+  getCustomerDetails = catchAsync(async (req: AuthRequest, res: Response) => {
+    const customerId = req.user!.id; // Here Token Must Be Of Customer
+    const widget = await this.widgetService.getByDefault();
+    const availablePoints =
+      await this.pointsTransactionService.getAvailablePoints(customerId);
+    const tier = await this.tierService.calculateTierByPoints(availablePoints);
+    const challenges = await this.challengeService.getEachTypeLatestChallenge();
+    const transactions =
+      await this.pointsTransactionService.getCustomerTransaction(customerId);
+    ResponseUtil.success(
+      res,
+      {
         widget,
         availablePoints,
         tier,
         challenges,
-        transactions
-      }, "Customer details fetched successfully");
-    } catch (error) {
-      next(error);
-    }
-  };
+        transactions,
+      },
+      "Customer details fetched successfully"
+    );
+  });
 
-  getCustomerJourney = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const customerId = req.user!.id;
-      const availablePoints = await this.pointsTransactionService.getAvailablePoints(customerId);
-      const totalPoints = await this.tierService.getMaxThresholdValue();
-      const tier = await this.tierService.getAllActiveTiers();
-      const nextTier = await this.tierService.getNextTierInfo(availablePoints);
-      ResponseUtil.success(res, {
+  getCustomerJourney = catchAsync(async (req: AuthRequest, res: Response) => {
+    const customerId = req.user!.id;
+    const availablePoints =
+      await this.pointsTransactionService.getAvailablePoints(customerId);
+    const totalPoints = await this.tierService.getMaxThresholdValue();
+    const tier = await this.tierService.getAllActiveTiers();
+    const nextTier = await this.tierService.getNextTierInfo(availablePoints);
+    ResponseUtil.success(
+      res,
+      {
         availablePoints,
         totalPoints,
         nextTier,
         tier,
-      }, "Customer journey fetched successfully");
-    } catch (error) {
-      next(error);
-    }
-  };
+      },
+      "Customer journey fetched successfully"
+    );
+  });
 }

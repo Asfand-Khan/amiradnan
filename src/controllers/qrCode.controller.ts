@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { QrCodeService } from "../services/qrCode.service.js";
 import { AuthRequest } from "../types/index.js";
 import {
@@ -7,6 +7,7 @@ import {
   QrCodeByIdSchema,
   QrCodeFilterSchema,
 } from "../validations/qrCode.validations.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 export class QrCodeController {
   private qrCodeService: QrCodeService;
@@ -15,94 +16,46 @@ export class QrCodeController {
     this.qrCodeService = new QrCodeService();
   }
 
-  generate = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const customerId = req.user!.id;
-      const qrCode = await this.qrCodeService.generate(
-        customerId,
-        1 // expiresInHours
-      );
-      res.status(201).json({ success: true, data: qrCode });
-    } catch (err) {
-      next(err);
-    }
-  };
+  generate = catchAsync(async (req: AuthRequest, res: Response) => {
+    const customerId = req.user!.id;
+    const qrCode = await this.qrCodeService.generate(
+      customerId,
+      1 // expiresInHours
+    );
+    res.status(201).json({ success: true, data: qrCode });
+  });
 
-  getAll = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: QrCodeFilterSchema = req.body;
-      const data = await this.qrCodeService.getAll(
-        body.page,
-        body.limit,
-        body.search
-      );
-      res.json({ success: true, data: data });
-    } catch (err) {
-      next(err);
-    }
-  };
+  getAll = catchAsync(async (req: AuthRequest, res: Response) => {
+    const body: QrCodeFilterSchema = req.body;
+    const data = await this.qrCodeService.getAll(
+      body.page,
+      body.limit,
+      body.search
+    );
+    res.json({ success: true, data: data });
+  });
 
-  getByCustomer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: QrCodeByCustomerSchema = req.body;
-      const qrCodes = await this.qrCodeService.getByCustomer(body.customerId);
-      res.json({ success: true, data: qrCodes });
-    } catch (err) {
-      next(err);
-    }
-  };
+  getByCustomer = catchAsync(async (req: Request, res: Response) => {
+    const body: QrCodeByCustomerSchema = req.body;
+    const qrCodes = await this.qrCodeService.getByCustomer(body.customerId);
+    res.json({ success: true, data: qrCodes });
+  });
 
-  getByCode = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: QrCodeByCodeValueSchema = req.body;
-      const qrCode = await this.qrCodeService.getByCode(body.codeValue);
-      res.json({ success: true, data: qrCode });
-    } catch (err) {
-      next(err);
-    }
-  };
+  getByCode = catchAsync(async (req: AuthRequest, res: Response) => {
+    const body: QrCodeByCodeValueSchema = req.body;
+    const qrCode = await this.qrCodeService.getByCode(body.codeValue);
+    res.json({ success: true, data: qrCode });
+  });
 
-  deactivate = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: QrCodeByIdSchema = req.body;
-      const qrCode = await this.qrCodeService.deactivate(body.qrCodeId);
-      res.json({ success: true, data: qrCode });
-    } catch (err) {
-      next(err);
-    }
-  };
+  deactivate = catchAsync(async (req: AuthRequest, res: Response) => {
+    const body: QrCodeByIdSchema = req.body;
+    const qrCode = await this.qrCodeService.deactivate(body.qrCodeId);
+    res.json({ success: true, data: qrCode });
+  });
 
-  delete = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: QrCodeByIdSchema = req.body;
-      const qrCode = await this.qrCodeService.delete(body.qrCodeId);
-      res.json({ success: true, data: qrCode });
-    } catch (err) {
-      next(err);
-    }
-  };
+  delete = catchAsync(async (req: AuthRequest, res: Response) => {
+    const body: QrCodeByIdSchema = req.body;
+    const qrCode = await this.qrCodeService.delete(body.qrCodeId);
+    res.json({ success: true, data: qrCode });
+  });
 }

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { ChallengeService } from "../services/challenge.service.js";
 import {
   CreateChallengeInput,
@@ -12,6 +12,8 @@ import {
 import { ResponseUtil } from "../utils/response.util.js";
 import { ChallengeType } from "@prisma/client";
 import { AuthRequest } from "../types/index.js";
+import { catchAsync } from "../utils/catchAsync.js";
+import { AppError } from "../middleware/error.middleware.js";
 
 export class ChallengeController {
   private challengeService: ChallengeService;
@@ -20,220 +22,124 @@ export class ChallengeController {
     this.challengeService = new ChallengeService();
   }
 
-  create = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: CreateChallengeInput = req.body;
+  create = catchAsync(async (req: Request, res: Response) => {
+    const body: CreateChallengeInput = req.body;
 
-      if (body.startAt && body.endAt) {
-        if (new Date(body.startAt) > new Date(body.endAt)) {
-          ResponseUtil.error(
-            res,
-            "End date must be greater than start date",
-            400
-          );
-          return;
-        }
+    if (body.startAt && body.endAt) {
+      if (new Date(body.startAt) > new Date(body.endAt)) {
+        throw new AppError("End date must be greater than start date", 400);
       }
-
-      if (
-        body.type === ChallengeType.purchase_based &&
-        body.requiredAmount <= 0
-      ) {
-        ResponseUtil.error(
-          res,
-          "Purchase-based challenges require a positive required amount",
-          400
-        );
-        return;
-      }
-
-      const challenge = await this.challengeService.createChallenge(req.body);
-
-      ResponseUtil.success(
-        res,
-        challenge,
-        "Challenge created successfully",
-        201
-      );
-    } catch (error) {
-      next(error);
     }
-  };
 
-  getById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: GetChallengeInput = req.body;
-      const challenge = await this.challengeService.getChallengeById(body.id);
-      ResponseUtil.success(
-        res,
-        challenge,
-        "Challenge fetched successfully",
-        200
+    if (
+      body.type === ChallengeType.purchase_based &&
+      body.requiredAmount <= 0
+    ) {
+      throw new AppError(
+        "Purchase-based challenges require a positive required amount",
+        400
       );
-    } catch (error) {
-      next(error);
     }
-  };
 
-  getAll = async (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const customerId = req.user!.id; // Here the token must be of customer
-      const challenges = await this.challengeService.getAllActiveChallenges(customerId);
-      ResponseUtil.success(res, challenges, "All challenges fetched successfully", 200);
-    } catch (error) {
-      next(error);
-    }
-  };
+    const challenge = await this.challengeService.createChallenge(req.body);
+    ResponseUtil.success(res, challenge, "Challenge created successfully", 201);
+  });
 
-  update = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: UpdateChallengeInput = req.body;
-      const challenge = await this.challengeService.updateChallenge(
-        body.challengeId,
-        body
-      );
+  getById = catchAsync(async (req: Request, res: Response) => {
+    const body: GetChallengeInput = req.body;
+    const challenge = await this.challengeService.getChallengeById(body.id);
+    ResponseUtil.success(res, challenge, "Challenge fetched successfully", 200);
+  });
 
-      ResponseUtil.success(
-        res,
-        challenge,
-        "Challenge updated successfully",
-        200
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  getAll = catchAsync(async (req: AuthRequest, res: Response) => {
+    const customerId = req.user!.id; // Here the token must be of customer
+    const challenges = await this.challengeService.getAllActiveChallenges(
+      customerId
+    );
+    ResponseUtil.success(
+      res,
+      challenges,
+      "All challenges fetched successfully",
+      200
+    );
+  });
 
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: DeleteChallengeInput = req.body;
-      await this.challengeService.deleteChallenge(body.id);
-      ResponseUtil.success(res, null, "Challenge deleted successfully", 200);
-    } catch (error) {
-      next(error);
-    }
-  };
+  update = catchAsync(async (req: Request, res: Response) => {
+    const body: UpdateChallengeInput = req.body;
+    const challenge = await this.challengeService.updateChallenge(
+      body.challengeId,
+      body
+    );
 
-  enrollCustomer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: EnrollCustomerInput = req.body;
-      const participant = await this.challengeService.enrollCustomer(
-        body.challengeId,
-        body.customerId
-      );
-      ResponseUtil.success(
-        res,
-        participant,
-        "Customer enrolled successfully",
-        201
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+    ResponseUtil.success(res, challenge, "Challenge updated successfully", 200);
+  });
 
-  updateProgress = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: UpdateProgressInput = req.body;
-      const participant = await this.challengeService.updateProgress(
-        body.challengeId,
-        body.customerId,
-        body.progressCount
-      );
+  delete = catchAsync(async (req: Request, res: Response) => {
+    const body: DeleteChallengeInput = req.body;
+    await this.challengeService.deleteChallenge(body.id);
+    ResponseUtil.success(res, null, "Challenge deleted successfully", 200);
+  });
 
-      ResponseUtil.success(
-        res,
-        participant,
-        "Progress updated successfully",
-        200
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  enrollCustomer = catchAsync(async (req: Request, res: Response) => {
+    const body: EnrollCustomerInput = req.body;
+    const participant = await this.challengeService.enrollCustomer(
+      body.challengeId,
+      body.customerId
+    );
+    ResponseUtil.success(
+      res,
+      participant,
+      "Customer enrolled successfully",
+      201
+    );
+  });
 
-  getCustomerChallenges = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: GetCustomerChallengesInput = req.body;
-      const challenges = await this.challengeService.getCustomerChallenges(
-        body.customerId,
-        body.status
-      );
-      ResponseUtil.success(
-        res,
-        challenges,
-        "Challenges fetched successfully",
-        200
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  updateProgress = catchAsync(async (req: Request, res: Response) => {
+    const body: UpdateProgressInput = req.body;
+    const participant = await this.challengeService.updateProgress(
+      body.challengeId,
+      body.customerId,
+      body.progressCount
+    );
 
-  getChallengeStats = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: GetChallengeInput = req.body;
-      const stats = await this.challengeService.getChallengeStats(body.id);
-      ResponseUtil.success(res, stats, "Stats fetched successfully", 200);
-    } catch (error) {
-      next(error);
-    }
-  };
+    ResponseUtil.success(
+      res,
+      participant,
+      "Progress updated successfully",
+      200
+    );
+  });
 
-  getActiveChallenges = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const body: UpdateChallengeInput = req.body;
-      const challenges = await this.challengeService.getActiveChallenges(
-        body.type
-      );
-      ResponseUtil.success(
-        res,
-        challenges,
-        "Challenges fetched successfully",
-        200
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  getCustomerChallenges = catchAsync(async (req: Request, res: Response) => {
+    const body: GetCustomerChallengesInput = req.body;
+    const challenges = await this.challengeService.getCustomerChallenges(
+      body.customerId,
+      body.status
+    );
+    ResponseUtil.success(
+      res,
+      challenges,
+      "Challenges fetched successfully",
+      200
+    );
+  });
+
+  getChallengeStats = catchAsync(async (req: Request, res: Response) => {
+    const body: GetChallengeInput = req.body;
+    const stats = await this.challengeService.getChallengeStats(body.id);
+    ResponseUtil.success(res, stats, "Stats fetched successfully", 200);
+  });
+
+  getActiveChallenges = catchAsync(async (req: Request, res: Response) => {
+    const body: UpdateChallengeInput = req.body;
+    const challenges = await this.challengeService.getActiveChallenges(
+      body.type
+    );
+    ResponseUtil.success(
+      res,
+      challenges,
+      "Challenges fetched successfully",
+      200
+    );
+  });
 }

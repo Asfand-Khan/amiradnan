@@ -129,10 +129,20 @@ export class PointsTransactionService {
   }
 
   async getAvailablePoints(customerId: number): Promise<number> {
-    return await this.pointsTransactionRepository.sumAvailablePoints(customerId);
+    return await this.pointsTransactionRepository.sumAvailablePoints(
+      customerId
+    );
   }
 
   async getCustomerTransaction(customerId: number): Promise<any[]> {
-    return await this.pointsTransactionRepository.getCustomerTransactions(customerId);
+    return await this.pointsTransactionRepository.getCustomerTransactions(
+      customerId
+    );
+  }
+
+  async findByReferenceId(referenceId: string) {
+    return await this.pointsTransactionRepository.findByReferenceId(
+      referenceId
+    );
   }
 }

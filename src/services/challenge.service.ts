@@ -176,10 +176,18 @@ export class ChallengeService {
     return await this.challengeRepository.delete(id);
   }
 
-  async enrollCustomer(challengeId: number, customerId: number, progressCount?: number, completed?: number) {
+  async enrollCustomer(
+    challengeId: number,
+    customerId: number,
+    progressCount?: number,
+    completed?: number
+  ) {
     await this.getChallengeById(challengeId); // Check if challenge exists
 
-    const existingParticipant = await this.challengeRepository.findParticipant(challengeId, customerId); // Check if customer is already enrolled
+    const existingParticipant = await this.challengeRepository.findParticipant(
+      challengeId,
+      customerId
+    ); // Check if customer is already enrolled
     if (existingParticipant) {
       throw new AppError("Customer is already enrolled in this challenge");
     }
@@ -220,25 +228,11 @@ export class ChallengeService {
     );
 
     // Check if challenge is completed
-    let isCompleted = false;
-
-    if (challenge.type === ChallengeType.purchase_based) {
-      isCompleted = progressCount >= challenge.requiredPurchases;
-    } else if (
-      challenge.type === ChallengeType.time_based &&
-      challenge.durationDays
-    ) {
-      const enrolledDate = participant.createdAt;
-      const daysPassed = Math.floor(
-        (Date.now() - enrolledDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      isCompleted = daysPassed >= challenge.durationDays;
-    }
+    let isCompleted = updated.progressCount == challenge.customerUsage;
 
     // Mark as completed if conditions met
     if (isCompleted) {
       await this.challengeRepository.markAsCompleted(challengeId, customerId);
-      // TODO: Award bonus points to customer
     }
 
     return updated;
@@ -277,13 +271,23 @@ export class ChallengeService {
   }
 
   async findParticipant(challengeId: number, customerId: number) {
-    const existingParticipant = await this.challengeRepository.findParticipant(challengeId, customerId); // Check if customer is already enrolled
-    
+    const existingParticipant = await this.challengeRepository.findParticipant(
+      challengeId,
+      customerId
+    ); // Check if customer is already enrolled
+
     if (existingParticipant) {
       throw new AppError("Customer is already enrolled in this challenge");
     }
 
     return existingParticipant;
+  }
+
+  async getParticipant(challengeId: number, customerId: number) {
+    return await this.challengeRepository.findParticipant(
+      challengeId,
+      customerId
+    );
   }
 
   async getEachTypeLatestChallenge() {

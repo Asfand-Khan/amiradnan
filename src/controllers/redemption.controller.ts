@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { RedemptionService } from "../services/redemption.service.js";
 import {
   CreateRedemptionInput,
@@ -11,6 +11,7 @@ import {
 import { ResponseUtil } from "../utils/response.util.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { AuthRequest } from "../types/index.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 export class RedemptionController {
   private redemptionService: RedemptionService;
@@ -19,91 +20,67 @@ export class RedemptionController {
     this.redemptionService = new RedemptionService();
   }
 
-  create = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const body: CreateRedemptionInput = req.body;
-      const redemption = await this.redemptionService.createRedemption(body);
-      ResponseUtil.success(res, redemption, "Redemption created successfully", 201);
-    } catch (error) {
-      next(error);
+  create = catchAsync(async (req: Request, res: Response) => {
+    const body: CreateRedemptionInput = req.body;
+    const redemption = await this.redemptionService.createRedemption(body);
+    ResponseUtil.success(
+      res,
+      redemption,
+      "Redemption created successfully",
+      201
+    );
+  });
+
+  getById = catchAsync(async (req: Request, res: Response) => {
+    const { redemptionId }: GetRedemptionInput = req.body;
+    const redemption = await this.redemptionService.getRedemptionById(
+      redemptionId
+    );
+    ResponseUtil.success(res, redemption);
+  });
+
+  getAll = catchAsync(async (req: AuthRequest, res: Response) => {
+    const query: ListRedemptionsInput = req.body;
+    const customerId = req.user ? req.user.id : query.customerId;
+
+    const redemptions = await this.redemptionService.getAllRedemptions({
+      customerId,
+      rewardId: query.rewardId,
+      locationId: query.locationId,
+      search: query.search,
+    });
+    ResponseUtil.success(res, redemptions);
+  });
+
+  update = catchAsync(async (req: Request, res: Response) => {
+    const { redemptionId, ...updateData }: UpdateRedemptionInput = req.body;
+    const updated = await this.redemptionService.updateRedemption(
+      redemptionId,
+      updateData
+    );
+    ResponseUtil.success(res, updated, "Redemption updated successfully");
+  });
+
+  delete = catchAsync(async (req: Request, res: Response) => {
+    const { redemptionId }: DeleteRedemptionInput = req.body;
+    await this.redemptionService.deleteRedemption(redemptionId);
+    ResponseUtil.success(res, null, "Redemption deleted successfully");
+  });
+
+  getStats = catchAsync(async (req: Request, res: Response) => {
+    const { redemptionId }: GetRedemptionInput = req.body;
+    const stats = await this.redemptionService.getRedemptionStats(redemptionId);
+    ResponseUtil.success(res, stats);
+  });
+
+  search = catchAsync(async (req: Request, res: Response) => {
+    const { search }: SearchRedemptionsInput = req.query as any;
+
+    if (!search || typeof search !== "string") {
+      throw new AppError("Search parameter is required");
     }
-  };
 
-  getById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { redemptionId }: GetRedemptionInput = req.body;
-      const redemption = await this.redemptionService.getRedemptionById(redemptionId);
-      ResponseUtil.success(res, redemption);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getAll = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      const query: ListRedemptionsInput = req.body;
-      const customerId = req.user ? req.user.id : query.customerId;
-
-      console.log("Customer ID: ", customerId);
-      const redemptions = await this.redemptionService.getAllRedemptions({
-        customerId,
-        rewardId: query.rewardId,
-        locationId: query.locationId,
-        search: query.search,
-      });
-      ResponseUtil.success(res, redemptions);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  update = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { redemptionId, ...updateData }: UpdateRedemptionInput = req.body;
-      const updated = await this.redemptionService.updateRedemption(
-        redemptionId,
-        updateData
-      );
-      ResponseUtil.success(res, updated, "Redemption updated successfully");
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  delete = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { redemptionId }: DeleteRedemptionInput = req.body;
-      await this.redemptionService.deleteRedemption(redemptionId);
-      ResponseUtil.success(res, null, "Redemption deleted successfully");
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getStats = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { redemptionId }: GetRedemptionInput = req.body;
-      const stats = await this.redemptionService.getRedemptionStats(
-        redemptionId
-      );
-      ResponseUtil.success(res, stats);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  search = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { search }: SearchRedemptionsInput = req.query as any;
-
-      if (!search || typeof search !== "string") {
-        throw new AppError("Search parameter is required");
-      }
-
-      const results = await this.redemptionService.searchRedemptions(search);
-      ResponseUtil.success(res, results);
-    } catch (error) {
-      next(error);
-    }
-  };
+    const results = await this.redemptionService.searchRedemptions(search);
+    ResponseUtil.success(res, results);
+  });
 }

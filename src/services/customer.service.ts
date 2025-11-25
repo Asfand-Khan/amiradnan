@@ -235,4 +235,12 @@ export class CustomerService {
   async fetchAllActiveDeviceToken(): Promise<string[]> {
     return await this.customerRepository.getAllActiveDeviceTokens();
   }
+
+  async findByEmail(email: string) {
+    return await this.customerRepository.findByEmail(email);
+  }
+
+  async create(data: any) {
+    return await this.customerRepository.create(data);
+  }
 }

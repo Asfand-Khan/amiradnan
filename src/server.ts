@@ -26,6 +26,7 @@ import challengeRoutes from "./routes/challenge.routes.js";
 import rewardRoutes from "./routes/rewards.routes.js";
 import locationRoutes from "./routes/location.route.js";
 import redemptionRoutes from "./routes/redemption.routes.js";
+import shopifyRoutes from "./routes/shopify.routes.js";
 
 class Server {
   private app: Application;
@@ -101,6 +102,7 @@ class Server {
     this.app.use(`${apiPrefix}/rewards`, rewardRoutes);
     this.app.use(`${apiPrefix}/locations`, locationRoutes);
     this.app.use(`${apiPrefix}/redemptions`, redemptionRoutes);
+    this.app.use(`${apiPrefix}/shopify`, shopifyRoutes);
 
     // 404 handler
     this.app.use(notFoundHandler);

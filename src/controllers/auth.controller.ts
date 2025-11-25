@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service.js";
 import { ResponseUtil } from "../utils/response.util.js";
+import { catchAsync } from "../utils/catchAsync.js";
 import {
   CreateCustomer,
   ForgotPassword,
@@ -9,6 +10,7 @@ import {
   RefreshAccessToken,
   SetPassword,
 } from "../validations/customer.validaions.js";
+import { AppError } from "../middleware/error.middleware.js";
 
 export class AuthController {
   private authService: AuthService;
@@ -17,133 +19,66 @@ export class AuthController {
     this.authService = new AuthService();
   }
 
-  register = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const data: CreateCustomer = req.body;
-      const result = await this.authService.register(data);
-      ResponseUtil.created(res, result, "Registration successful");
-    } catch (error) {
-      next(error);
+  register = catchAsync(async (req: Request, res: Response) => {
+    const data: CreateCustomer = req.body;
+    const result = await this.authService.register(data);
+    ResponseUtil.created(res, result, "Registration successful");
+  });
+
+  login = catchAsync(async (req: Request, res: Response) => {
+    const data: LoginCustomer = req.body;
+    const result = await this.authService.login(data);
+    ResponseUtil.success(res, result, "Login successful");
+  });
+
+  refreshToken = catchAsync(async (req: Request, res: Response) => {
+    const { refresh_token }: RefreshAccessToken = req.body;
+
+    if (!refresh_token) {
+      throw new AppError("Refresh token is required", 400);
     }
-  };
 
-  login = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const data: LoginCustomer = req.body;
-      const result = await this.authService.login(data);
-      ResponseUtil.success(res, result, "Login successful");
-    } catch (error) {
-      next(error);
+    const result = await this.authService.refreshAccessToken(refresh_token);
+    ResponseUtil.success(res, result, "Token refreshed successfully");
+  });
+
+  forgotPassword = catchAsync(async (req: Request, res: Response) => {
+    const { email }: ForgotPassword = req.body;
+    const result = await this.authService.forgotPassword(email);
+    ResponseUtil.success(res, result);
+  });
+
+  resetPassword = catchAsync(async (req: Request, res: Response) => {
+    const { token, new_password } = req.body;
+    const result = await this.authService.resetPassword(token, new_password);
+    ResponseUtil.success(res, result);
+  });
+
+  logout = catchAsync(async (req: Request, res: Response) => {
+    const { refresh_token }: RefreshAccessToken = req.body;
+
+    if (!refresh_token) {
+      throw new AppError("Refresh token is required", 400);
     }
-  };
 
-  refreshToken = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { refresh_token }: RefreshAccessToken = req.body;
+    const result = await this.authService.logout(refresh_token);
+    ResponseUtil.success(res, result);
+  });
 
-      if (!refresh_token) {
-        ResponseUtil.error(res, "Refresh token is required", 400);
-        return;
-      }
+  googleLogin = catchAsync(async (req: Request, res: Response) => {
+    const { token }: GoogleLogin = req.body;
 
-      const result = await this.authService.refreshAccessToken(refresh_token);
-      ResponseUtil.success(res, result, "Token refreshed successfully");
-    } catch (error) {
-      next(error);
+    if (!token) {
+      throw new AppError("Google Token is required", 400);
     }
-  };
 
-  forgotPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { email }: ForgotPassword = req.body;
-      const result = await this.authService.forgotPassword(email);
-      ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
+    const result = await this.authService.googleLogin(token);
+    ResponseUtil.success(res, result);
+  });
 
-  resetPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { token, new_password } = req.body;
-      const result = await this.authService.resetPassword(token, new_password);
-      ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  logout = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { refresh_token }: RefreshAccessToken = req.body;
-
-      if (!refresh_token) {
-        ResponseUtil.error(res, "Refresh token is required", 400);
-        return;
-      }
-
-      const result = await this.authService.logout(refresh_token);
-      ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  googleLogin = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { token }: GoogleLogin = req.body;
-
-      if (!token) {
-        ResponseUtil.error(res, "Google Token is required", 400);
-        return;
-      }
-
-      const result = await this.authService.googleLogin(token);
-      ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  setPassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const data: SetPassword = req.body;
-      const result = await this.authService.setPassword(data);
-      ResponseUtil.success(res, result);
-    } catch (error) {
-      next(error);
-    }
-  };
+  setPassword = catchAsync(async (req: Request, res: Response) => {
+    const data: SetPassword = req.body;
+    const result = await this.authService.setPassword(data);
+    ResponseUtil.success(res, result);
+  });
 }
