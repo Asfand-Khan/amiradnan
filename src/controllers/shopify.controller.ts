@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { ShopifyService } from "../services/shopify.service.js";
 import { ResponseUtil } from "../utils/response.util.js";
 import { catchAsync } from "../utils/catchAsync.js";

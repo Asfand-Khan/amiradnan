@@ -1,5 +1,4 @@
 import { AppError } from "../middleware/error.middleware.js";
-import { CustomerService } from "./customer.service.js";
 import { PointsTransactionService } from "./pointTransaction.service.js";
 import { ChallengeService } from "./challenge.service.js";
 import { TierService } from "./tier.service.js";
