@@ -48,6 +48,10 @@ export const config = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || "",
   },
+  shopify: {
+    domain: process.env.SHOPIFY_DOMAIN || "",
+    accessToken: process.env.SHOPIFY_ACCESS_TOKEN || "",
+  },
 };
 
 // Export initialized Mailgun instance
