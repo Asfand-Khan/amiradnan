@@ -90,12 +90,10 @@ export class ShopifyService {
 
   private async fetchShopifyOrder(orderNo: string) {
     const url = `${this.shopifyDomain}/admin/api/2024-01/orders.json?name=${orderNo}&status=any`;
-    console.log(url);
 
     try {
       const myHeaders = new Headers();
       myHeaders.append("X-Shopify-Access-Token", this.shopifyToken);
-      console.log(myHeaders);
 
       const requestOptions: RequestInit = {
         method: "GET",
@@ -105,12 +103,13 @@ export class ShopifyService {
 
       const response = await fetch(url, requestOptions);
 
-      console.log(response);
       if (!response.ok) {
         throw new Error(`Shopify API Error: ${response.statusText}`);
       }
 
       const data: any = await response.json();
+      console.log(data);
+
       if (data.orders && data.orders.length > 0) {
         return data.orders[0];
       }
