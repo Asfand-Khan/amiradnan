@@ -85,6 +85,7 @@ export class CustomerRepository {
         address: userData.address,
         gender: userData.gender as Gender,
         profileImage: userData.image,
+        deviceToken: userData.fcmToken,
       },
     });
     return updated;
@@ -217,7 +218,9 @@ export class CustomerRepository {
       },
       select: { deviceToken: true },
     });
-    
-    return customers.map((c) => c.deviceToken).filter((token): token is string => Boolean(token && token.length > 0));
+
+    return customers
+      .map((c) => c.deviceToken)
+      .filter((token): token is string => Boolean(token && token.length > 0));
   }
 }

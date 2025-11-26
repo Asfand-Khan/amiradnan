@@ -49,6 +49,7 @@ export const updateCustomerSchema = createCustomerSchema.partial().extend({
           "Image must be a valid base64-encoded string (png, jpg, jpeg, gif, or webp).",
       }
     ),
+  fcmToken: z.string().optional(),
 });
 
 export const loginCustomerSchema = z.object({
@@ -155,5 +156,7 @@ export type CustomerFilter = z.infer<typeof customerFilterSchema>;
 export type CustomerById = z.infer<typeof customerByIdSchema>;
 export type GoogleLogin = z.infer<typeof googleLoginSchema>;
 export type SetPassword = z.infer<typeof setPasswordSchema>;
-export type CreateCustomerMeasurement = z.infer<typeof createCustomerMeasurementSchema>;
+export type CreateCustomerMeasurement = z.infer<
+  typeof createCustomerMeasurementSchema
+>;
 export type UpdateCustomer = z.infer<typeof updateCustomerSchema>;

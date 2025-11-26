@@ -40,6 +40,7 @@ export class CustomerService {
   async updateProfile(userId: number, data: UpdateCustomer) {
     let password;
     let image;
+    let fcmToken;
     if (data.password) {
       password = await hashPassword(data.password);
     }
@@ -48,10 +49,15 @@ export class CustomerService {
       image = await saveBase64Image(data.image, "customers");
     }
 
+    if (data.fcmToken) {
+      fcmToken = data.fcmToken;
+    }
+
     const customer = await this.customerRepository.update(userId, {
       ...data,
       password,
       image,
+      fcmToken,
     });
 
     if (!customer) {
