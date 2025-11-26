@@ -50,7 +50,7 @@ export const config = {
   },
   shopify: {
     domain: process.env.SHOPIFY_DOMAIN || "",
-    accessToken: process.env.SHOPIFY_ACCESS_TOKEN || "",
+    accessToken: process.env.SHOPIFY_TOKEN || "",
   },
 };
 
