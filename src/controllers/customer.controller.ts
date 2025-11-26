@@ -178,4 +178,10 @@ export class CustomerController {
       "Customer journey fetched successfully"
     );
   });
+
+  removeFcmToken = catchAsync(async (req: AuthRequest, res: Response) => {
+    const customerId = req.user!.id;
+    await this.customerService.removeDeviceToken(customerId);
+    ResponseUtil.success(res, null, "Fcm Token removed successfully");
+  });
 }

@@ -1,8 +1,11 @@
-import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth.middleware.js';
-import { CustomerController } from '../controllers/customer.controller.js';
-import { validateResource } from '../middleware/validation.middleware.js';
-import { createCustomerMeasurementSchema, updateCustomerSchema } from '../validations/customer.validaions.js';
+import { Router } from "express";
+import { authenticateToken } from "../middleware/auth.middleware.js";
+import { CustomerController } from "../controllers/customer.controller.js";
+import { validateResource } from "../middleware/validation.middleware.js";
+import {
+  createCustomerMeasurementSchema,
+  updateCustomerSchema,
+} from "../validations/customer.validaions.js";
 
 const router = Router();
 const customerController = new CustomerController();
@@ -15,7 +18,7 @@ router.use(authenticateToken);
  * @desc    Get current user profile
  * @access  Private
  */
-router.get('/', customerController.getProfile);
+router.get("/", customerController.getProfile);
 
 /**
  * @route   PUT /api/profile
@@ -23,7 +26,7 @@ router.get('/', customerController.getProfile);
  * @access  Private
  */
 router.put(
-  '/',
+  "/",
   validateResource(updateCustomerSchema),
   customerController.updateProfile
 );
@@ -34,7 +37,7 @@ router.put(
  * @access  Private
  */
 router.post(
-  '/create-measurements',
+  "/create-measurements",
   validateResource(createCustomerMeasurementSchema),
   customerController.createMeasurement
 );
@@ -44,10 +47,7 @@ router.post(
  * @desc    Get customer measurements
  * @access  Private
  */
-router.get(
-  '/measurements',
-  customerController.getMeasurements
-);
+router.get("/measurements", customerController.getMeasurements);
 
 /**
  * @route   PUT /api/profile/measurements
@@ -55,9 +55,16 @@ router.get(
  * @access  Private
  */
 router.put(
-  '/measurements',
+  "/measurements",
   validateResource(createCustomerMeasurementSchema.partial()),
   customerController.updateMeasurement
 );
+
+/**
+ * @route   GET /api/profile/remove-fcm-token
+ * @desc    Remove fcm token
+ * @access  Private
+ */
+router.get("/remove-fcm-token", customerController.removeFcmToken);
 
 export default router;

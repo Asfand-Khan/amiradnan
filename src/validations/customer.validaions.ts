@@ -49,7 +49,7 @@ export const updateCustomerSchema = createCustomerSchema.partial().extend({
           "Image must be a valid base64-encoded string (png, jpg, jpeg, gif, or webp).",
       }
     ),
-  fcmToken: z.string().optional().nullable(),
+  fcmToken: z.string().optional(),
 });
 
 export const loginCustomerSchema = z.object({
