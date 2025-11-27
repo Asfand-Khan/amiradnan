@@ -2,6 +2,7 @@
 node_modules/
 package-lock.json
 yarn.lock
+firebase-amiradnan.json
 
 # Environment variables
 .env
