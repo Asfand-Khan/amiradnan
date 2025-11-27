@@ -4,7 +4,10 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { NotificationType } from "@prisma/client";
 import { ResponseUtil } from "../utils/response.util.js";
 import { AuthRequest } from "../types/index.js";
-import { CreateNotification } from "../validations/notification.validations.js";
+import {
+  CreateNotification,
+  GetSingleNotification,
+} from "../validations/notification.validations.js";
 
 export class NotificationController {
   private notificationService: NotificationService;
@@ -33,4 +36,12 @@ export class NotificationController {
     const result = await this.notificationService.getAllNotifications();
     ResponseUtil.success(res, result, "Notifications retrieved successfully");
   });
+
+  public getSingleNotification = catchAsync(
+    async (req: Request, res: Response) => {
+      const { id }: GetSingleNotification = req.body;
+      const result = await this.notificationService.getSingleNotification(id);
+      ResponseUtil.success(res, result, "Notification retrieved successfully");
+    }
+  );
 }

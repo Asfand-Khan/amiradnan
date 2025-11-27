@@ -22,4 +22,9 @@ export const createNotificationSchema = z.object({
   type: NotificationTypeEnum.default("promo"),
 });
 
+export const getSingleNotificationSchema = z.object({
+  id: z.number(),
+});
+
 export type CreateNotification = z.infer<typeof createNotificationSchema>;
+export type GetSingleNotification = z.infer<typeof getSingleNotificationSchema>;
