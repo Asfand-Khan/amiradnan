@@ -52,6 +52,10 @@ export const config = {
     domain: process.env.SHOPIFY_DOMAIN || "",
     accessToken: process.env.SHOPIFY_TOKEN || "",
   },
+  firebase: {
+    serviceAccountPath:
+      process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "firebase-amiradnan.json",
+  },
 };
 
 // Export initialized Mailgun instance

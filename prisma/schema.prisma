@@ -172,41 +172,19 @@ model Location {
 }
 
 model Notification {
-  id          Int              @id @default(autoincrement())
-  title       String           @db.VarChar(255)
-  body        String           @db.Text
-  type        NotificationType @default(promo)
-  createdBy   Int?             @map("created_by")
-  scheduledAt DateTime?        @map("scheduled_at")
-  isBroadcast Int              @default(0) @map("is_broadcast") @db.TinyInt
-  active      Int              @default(1) @db.TinyInt
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
+  id        Int              @id @default(autoincrement())
+  title     String           @db.VarChar(255)
+  body      String           @db.LongText
+  type      NotificationType @default(promo)
+  createdBy Int?             @map("created_by")
+  active    Int              @default(1) @db.TinyInt
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @default(now()) @updatedAt @map("updated_at")
 
-  targets       NotificationTarget[]
-  createdByUser ShopUser?            @relation(fields: [createdBy], references: [id])
+  createdByUser ShopUser? @relation(fields: [createdBy], references: [id])
 
   @@index([createdBy], map: "created_by_idx")
   @@map("notifications")
-}
-
-model NotificationTarget {
-  id             Int        @id @default(autoincrement())
-  notificationId Int        @map("notification_id")
-  targetType     TargetType
-  targetTierId   Int?       @map("target_tier_id")
-  targetEmail    String?    @map("target_email") @db.VarChar(254)
-  targetPhone    String?    @map("target_phone") @db.VarChar(30)
-  targetGender   Gender?    @map("target_gender")
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at")
-
-  notification Notification @relation(fields: [notificationId], references: [id])
-  targetTier   Tier?        @relation(fields: [targetTierId], references: [id])
-
-  @@index([notificationId], map: "notification_id_idx")
-  @@index([targetTierId], map: "target_tier_id_idx")
-  @@map("notification_targets")
 }
 
 model Order {
@@ -501,9 +479,8 @@ model Tier {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  customerTiers       CustomerTier[]
-  notificationTargets NotificationTarget[]
-  tierRewards         TierReward[]
+  customerTiers CustomerTier[]
+  tierRewards   TierReward[]
 
   @@map("tiers")
 }
@@ -602,13 +579,6 @@ enum NotificationType {
   challenge_completed
   promo
   transaction
-}
-
-enum TargetType {
-  tier
-  email
-  phone
-  all
 }
 
 enum OrderChannel {
