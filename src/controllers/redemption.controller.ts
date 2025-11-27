@@ -41,7 +41,7 @@ export class RedemptionController {
 
   getAll = catchAsync(async (req: AuthRequest, res: Response) => {
     const query: ListRedemptionsInput = req.body;
-    const customerId = req.user ? req.user.id : query.customerId;
+    const customerId = query.customerId ? query.customerId : req.user!.id;
 
     const redemptions = await this.redemptionService.getAllRedemptions({
       customerId,
