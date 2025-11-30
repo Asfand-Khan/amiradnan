@@ -6,6 +6,7 @@ import {
   Prisma,
   TransactionType,
   PointsExpiryDefault,
+  PricePointRule,
 } from "@prisma/client";
 import prisma from "../config/database.js";
 
@@ -14,6 +15,7 @@ export class PointsTransactionRepository {
   private balanceRepository = prisma.pointsBalance;
   private expiryBatchRepository = prisma.pointsExpiryBatch;
   private pointsExpiryDefaultRepository = prisma.pointsExpiryDefault;
+  private pricePointRuleRepository = prisma.pricePointRule;
 
   async create(
     data: Prisma.PointsTransactionCreateInput
@@ -498,5 +500,11 @@ export class PointsTransactionRepository {
       isExpired: tx.expiryDate < currentTime,
       status: tx.expiryDate < currentTime ? "Expired" : "Valid",
     }));
+  }
+
+  async getLatestPricePointRule(): Promise<PricePointRule | null> {
+    return await this.pricePointRuleRepository.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
   }
 }

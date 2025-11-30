@@ -147,6 +147,31 @@ export const createCustomerMeasurementSchema = z.object({
     .min(1, "Hip is required"),
 });
 
+export const assignPointsSchema = z.object({
+  customerId: z
+    .number({
+      required_error: "Customer ID is required",
+    })
+    .int({
+      message: "Customer ID must be an integer",
+    })
+    .positive(),
+
+  orderNo: z
+    .string()
+    .min(6, "Order No must be at least 6 characters")
+    .max(255, "Order No cannot exceed 255 characters"),
+
+  orderAmount: z
+    .number({
+      required_error: "Order Amount is required",
+    })
+    .int({
+      message: "Order Amount must be an integer",
+    })
+    .positive(),
+});
+
 export type CreateCustomer = z.infer<typeof createCustomerSchema>;
 export type LoginCustomer = z.infer<typeof loginCustomerSchema>;
 export type RefreshAccessToken = z.infer<typeof refreshAccessTokenSchema>;
@@ -156,7 +181,6 @@ export type CustomerFilter = z.infer<typeof customerFilterSchema>;
 export type CustomerById = z.infer<typeof customerByIdSchema>;
 export type GoogleLogin = z.infer<typeof googleLoginSchema>;
 export type SetPassword = z.infer<typeof setPasswordSchema>;
-export type CreateCustomerMeasurement = z.infer<
-  typeof createCustomerMeasurementSchema
->;
+export type CreateCustomerMeasurement = z.infer<typeof createCustomerMeasurementSchema>;
 export type UpdateCustomer = z.infer<typeof updateCustomerSchema>;
+export type AssignPoints = z.infer<typeof assignPointsSchema>;

@@ -3,6 +3,7 @@ import { CustomerController } from "../controllers/customer.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { validateResource } from "../middleware/validation.middleware.js";
 import {
+  assignPointsSchema,
   customerByIdSchema,
   customerFilterSchema,
 } from "../validations/customer.validaions.js";
@@ -36,16 +37,31 @@ router.post(
 );
 
 /**
- * @route   GET /api/users/
+ * @route   GET /api/customers/
  * @desc    Get user by ID
  * @access  Private
  */
 router.get("/", customerController.getCustomerDetails);
+
 /**
- * @route   GET /api/customers/
+ * @route   GET /api/customers/journey
  * @desc    Get customer journey for membership
  * @access  Private
  */
 router.get("/journey", customerController.getCustomerJourney);
+
+/**
+ * @route   POST /api/customers/assign-points
+ * @desc    Assign points to customer
+ * @access  Private
+ */
+router.post("/assign-points",validateResource(assignPointsSchema), customerController.assignPoints);
+
+/**
+ * @route   GET /api/customers/transactions
+ * @desc    Fetch customer transactions
+ * @access  Private
+ */
+router.get("/transactions", customerController.getCustomerTransactionHistory);
 
 export default router;

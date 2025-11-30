@@ -4,6 +4,7 @@ import { ResponseUtil } from "../utils/response.util.js";
 import { AuthRequest } from "../types/index.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import {
+  AssignPoints,
   CreateCustomerMeasurement,
   CustomerById,
   CustomerFilter,
@@ -14,6 +15,7 @@ import { PointsTransactionService } from "../services/pointTransaction.service.j
 import { ChallengeType, TransactionType } from "@prisma/client";
 import { TierService } from "../services/tier.service.js";
 import { WidgetService } from "../services/widget.service.js";
+import { AppError } from "../middleware/error.middleware.js";
 
 export class CustomerController {
   private customerService: CustomerService;
@@ -179,9 +181,37 @@ export class CustomerController {
     );
   });
 
+  assignPoints = catchAsync(async (req: AuthRequest, res: Response) => {
+    const { customerId, orderNo, orderAmount }: AssignPoints = req.body;
+    const result = await this.pointsTransactionService.processOrder(
+      orderNo,
+      customerId,
+      orderAmount
+    );
+    ResponseUtil.success(res, result, "Order processed successfully");
+  });
+
   removeFcmToken = catchAsync(async (req: AuthRequest, res: Response) => {
     const customerId = req.user!.id;
     await this.customerService.removeDeviceToken(customerId);
     ResponseUtil.success(res, null, "Fcm Token removed successfully");
+  });
+
+  getCustomerTransactionHistory = catchAsync(async (req: AuthRequest, res: Response) => {
+    const { customerId } = req.query;
+
+    if(!customerId){
+      throw new AppError("Customer Id is required", 400);
+    }
+
+    const transactions =
+      await this.pointsTransactionService.getCustomerTransaction(+customerId!);
+    ResponseUtil.success(
+      res,
+      {
+        transactions,
+      },
+      "Customer transaction fetched successfully"
+    );
   });
 }
