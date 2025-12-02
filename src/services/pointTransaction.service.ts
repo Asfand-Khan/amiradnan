@@ -271,8 +271,7 @@ export class PointsTransactionService {
       );
 
       if (shouldUpdateProgress) {
-        const pointsExpiry =
-          await this.pointsExpiryDefault();
+        const pointsExpiry = await this.pointsExpiryDefault();
         const progressUpdate = participant.progressCount + 1;
 
         await this.challengeService.updateProgress(
@@ -318,7 +317,9 @@ export class PointsTransactionService {
     });
 
     // 5. Check Challenges
-    await this.checkChallenges(customerId, { total_price: orderAmount.toString() });
+    await this.checkChallenges(customerId, {
+      total_price: orderAmount.toString(),
+    });
 
     // 6. Update Tier
     const newTier = await this.tierService.autoAssignTierToCustomer(
