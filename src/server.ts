@@ -28,6 +28,8 @@ import locationRoutes from "./routes/location.route.js";
 import redemptionRoutes from "./routes/redemption.routes.js";
 import shopifyRoutes from "./routes/shopify.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import pricePointRuleRoutes from "./routes/price-point-rule.routes.js";
+import pointsExpiryDefaultRoutes from "./routes/points-expiry-default.routes.js";
 
 class Server {
   private app: Application;
@@ -41,7 +43,12 @@ class Server {
 
   private configureMiddleware(): void {
     // Security middleware
-    this.app.use(helmet());
+    this.app.use(
+      helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+        crossOriginEmbedderPolicy: false,
+      })
+    );
 
     // CORS
     this.app.use(
@@ -105,6 +112,11 @@ class Server {
     this.app.use(`${apiPrefix}/redemptions`, redemptionRoutes);
     this.app.use(`${apiPrefix}/shopify`, shopifyRoutes);
     this.app.use(`${apiPrefix}/notifications`, notificationRoutes);
+    this.app.use(`${apiPrefix}/price-point-rules`, pricePointRuleRoutes);
+    this.app.use(
+      `${apiPrefix}/points-expiry-defaults`,
+      pointsExpiryDefaultRoutes
+    );
 
     // 404 handler
     this.app.use(notFoundHandler);

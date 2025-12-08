@@ -40,6 +40,16 @@ export class RewardService {
     return reward;
   }
 
+  async getRewardByTierId(id: number): Promise<Reward[]> {
+    const reward = await this.rewardRepository.findByTierId(id);
+
+    if (!reward) {
+      throw new AppError("Reward not found", 404);
+    }
+
+    return reward;
+  }
+
   async getAllRewards(params: {
     active?: boolean;
     search?: string;

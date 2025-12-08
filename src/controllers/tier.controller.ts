@@ -8,7 +8,6 @@ import {
   GetCustomerTiersInput,
   GetTierCustomersInput,
   GetTierInput,
-  ListTiersInput,
   RemoveTierFromCustomerInput,
   ReorderTiersInput,
   UpdateTierInput,
@@ -36,29 +35,9 @@ export class TierController {
     ResponseUtil.success(res, tier, "Tier fetched successfully", 200);
   });
 
-  getAll = catchAsync(async (req: Request, res: Response) => {
-    const body: ListTiersInput = req.body;
-    const result = await this.tierService.getAllTiers({
-      page: body.page,
-      limit: body.limit,
-      active: body.active,
-      search: body.search,
-    });
-
-    ResponseUtil.success(
-      res,
-      {
-        data: result.data,
-        meta: {
-          total: result.total,
-          page: result.page,
-          totalPages: result.totalPages,
-          limit: req.query.limit,
-        },
-      },
-      "Tiers fetched successfully",
-      200
-    );
+  getAll = catchAsync(async (_req: Request, res: Response) => {
+    const result = await this.tierService.getAllTiers();
+    ResponseUtil.success(res, result, "Tiers fetched successfully", 200);
   });
 
   update = catchAsync(async (req: Request, res: Response) => {

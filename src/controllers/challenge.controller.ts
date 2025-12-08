@@ -22,6 +22,16 @@ export class ChallengeController {
     this.challengeService = new ChallengeService();
   }
 
+  getAllChallenges = catchAsync(async (_req: AuthRequest, res: Response) => {
+    const challenges = await this.challengeService.getAllChallenges();
+    ResponseUtil.success(
+      res,
+      challenges,
+      "All challenges fetched successfully",
+      200
+    );
+  });
+
   create = catchAsync(async (req: Request, res: Response) => {
     const body: CreateChallengeInput = req.body;
 

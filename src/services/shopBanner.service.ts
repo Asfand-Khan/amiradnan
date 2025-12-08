@@ -3,7 +3,10 @@ import fs from "fs";
 import { AppError } from "../middleware/error.middleware.js";
 import { ShopBannerRepository } from "../repositories/shopBanner.repository.js";
 import { saveBase64Image } from "../utils/file.util.js";
-import { CreateShopBanner } from "../validations/shopBanner.validations.js";
+import {
+  CreateShopBanner,
+  UpdateShopBanner,
+} from "../validations/shopBanner.validations.js";
 
 export class ShopBannerService {
   private shopBannerRepository: ShopBannerRepository;
@@ -33,20 +36,57 @@ export class ShopBannerService {
     return banner;
   }
 
+  async update(id: number, data: Partial<UpdateShopBanner>) {
+    const existing = await this.shopBannerRepository.getById(id);
+    if (!existing) throw new AppError("Banner not found", 404);
+
+    if (data.banners) {
+      const processedBanners = await Promise.all(
+        data.banners.map(async (banner) => {
+          if (banner.imageUrl.startsWith("data:image")) {
+            const imagePath = await saveBase64Image(banner.imageUrl, "banners");
+            return { ...banner, imageUrl: imagePath };
+          }
+          return banner;
+        })
+      );
+
+      // Delete removed images
+      const newImagePaths = new Set(processedBanners.map((b) => b.imageUrl));
+      if (existing.shopBannerDetails) {
+        existing.shopBannerDetails.forEach((detail) => {
+          if (detail.imageUrl && !newImagePaths.has(detail.imageUrl)) {
+            const filePath = path.join(process.cwd(), detail.imageUrl);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          }
+        });
+      }
+
+      data.banners = processedBanners;
+    }
+
+    return await this.shopBannerRepository.update(id, data);
+  }
+
   async delete(id: number) {
     const existing = await this.shopBannerRepository.getById(id);
-    if (!existing) throw new Error("Banner not found");
+    if (!existing) throw new AppError("Banner not found", 404);
 
-    // Remove image file
-    const filePath = path.join(process.cwd(), existing.imageUrl!);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (existing.shopBannerDetails) {
+      existing.shopBannerDetails.forEach((detail) => {
+        if (detail.imageUrl) {
+          const filePath = path.join(process.cwd(), detail.imageUrl);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+      });
+    }
 
     await this.shopBannerRepository.delete(id);
   }
 
   async toggleActive(id: number) {
     const banner = await this.shopBannerRepository.getById(id);
-    if (!banner) throw new Error("Banner not found");
+    if (!banner) throw new AppError("Banner not found", 404);
 
     const newStatus = banner.active === 1 ? 0 : 1;
     return await this.shopBannerRepository.update(id, { active: newStatus });

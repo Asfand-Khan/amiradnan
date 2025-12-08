@@ -52,6 +52,18 @@ export class RedemptionController {
     ResponseUtil.success(res, redemptions);
   });
 
+  getAllRedemptionList = catchAsync(
+    async (_req: AuthRequest, res: Response) => {
+      const redemptions = await this.redemptionService.getAllRedemptionList();
+      ResponseUtil.success(
+        res,
+        redemptions,
+        "Redemptions list fetched successfully",
+        200
+      );
+    }
+  );
+
   update = catchAsync(async (req: Request, res: Response) => {
     const { redemptionId, ...updateData }: UpdateRedemptionInput = req.body;
     const updated = await this.redemptionService.updateRedemption(

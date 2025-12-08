@@ -57,47 +57,17 @@ export class TierService {
     return tier;
   }
 
-  async getAllTiers(params: {
-    page: number;
-    limit: number;
-    active?: number;
-    search?: string;
-  }): Promise<{
-    data: Tier[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
-    const skip = (params.page - 1) * params.limit;
-
+  async getAllTiers(): Promise<Tier[]> {
     const where: Prisma.TierWhereInput = {
       isDeleted: false,
     };
 
-    if (params.active !== undefined) {
-      where.active = params.active;
-    }
-
-    if (params.search) {
-      where.OR = [
-        { name: { contains: params.search } },
-        { description: { contains: params.search } },
-      ];
-    }
-
-    const { data, total } = await this.tierRepository.findAll({
-      skip,
-      take: params.limit,
+    const data = await this.tierRepository.findAll({
       where,
       orderBy: { displayOrder: "asc" },
     });
 
-    return {
-      data,
-      total,
-      page: params.page,
-      totalPages: Math.ceil(total / params.limit),
-    };
+    return data;
   }
 
   async getAllActiveTiers(): Promise<Tier[]> {

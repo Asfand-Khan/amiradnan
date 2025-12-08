@@ -27,15 +27,42 @@ export const createShopBannerSchema = z.object({
         .optional(),
     })
   ),
-  sorting: z.string().optional(),
+  sorting: z.number().int().positive(),
   type: ShopBannerTypeEnum,
   isAuto: z.boolean().optional().default(false),
-  delay: z.string().optional(),
+  delay: z.number().int().positive().optional(),
   active: z.number().int().min(0).max(1).default(1),
 });
 
 // Update Schema (partial version)
-export const updateShopBannerSchema = createShopBannerSchema.partial();
+export const updateShopBannerSchema = z.object({
+  name: z
+    .string({
+      required_error: "Name is required",
+    })
+    .min(1, "Name is required")
+    .max(200, "Name must not exceed 200 characters")
+    .optional(),
+  banners: z
+    .array(
+      z.object({
+        id: z.number().optional(),
+        imageUrl: z.string(),
+        targetUrl: z
+          .string()
+          .url("Target URL must be a valid URL")
+          .max(500)
+          .optional(),
+        sorting: z.number().int().optional(),
+      })
+    )
+    .optional(),
+  sorting: z.number().int().positive().optional(),
+  type: ShopBannerTypeEnum.optional(),
+  isAuto: z.boolean().optional().default(false),
+  delay: z.number().int().positive().optional(),
+  active: z.number().int().min(0).max(1).default(1),
+});
 
 export type CreateShopBanner = z.infer<typeof createShopBannerSchema>;
 export type UpdateShopBanner = z.infer<typeof updateShopBannerSchema>;

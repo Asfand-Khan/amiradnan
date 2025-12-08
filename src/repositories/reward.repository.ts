@@ -1,5 +1,5 @@
-import { Reward, Prisma } from '@prisma/client';
-import prisma from '../config/database.js';
+import { Reward, Prisma } from "@prisma/client";
+import prisma from "../config/database.js";
 
 export class RewardRepository {
   private repository = prisma.reward;
@@ -39,7 +39,7 @@ export class RewardRepository {
         },
         redemptions: {
           take: 10,
-          orderBy: { redeemedAt: 'desc' },
+          orderBy: { redeemedAt: "desc" },
           include: {
             customer: {
               select: {
@@ -54,10 +54,24 @@ export class RewardRepository {
     });
   }
 
+  async findByTierId(id: number): Promise<Reward[] | null> {
+    return await this.repository.findMany({
+      where: {
+        tierRewards: {
+          some: {
+            tierId: id,
+          },
+        },
+        isDeleted: false,
+        active: true,
+      },
+    });
+  }
+
   async findAll(where?: Prisma.RewardWhereInput): Promise<Reward[]> {
     return await this.repository.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         tierRewards: {
           include: {
@@ -132,7 +146,7 @@ export class RewardRepository {
         active: true,
         isDeleted: false,
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
       include: {
         tierRewards: {
           include: {
@@ -149,7 +163,7 @@ export class RewardRepository {
         where: { rewardId: id },
       }),
       prisma.redemption.groupBy({
-        by: ['rewardId'],
+        by: ["rewardId"],
         where: { rewardId: id },
         _count: { id: true },
       }),

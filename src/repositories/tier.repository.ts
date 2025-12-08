@@ -14,28 +14,33 @@ export class TierRepository {
   async findById(id: number): Promise<Tier | null> {
     return await this.repository.findUnique({
       where: { id },
+      include: {
+        tierRewards: {
+          select: {
+            reward: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
   async findAll(params: {
-    skip?: number;
-    take?: number;
     where?: Prisma.TierWhereInput;
     orderBy?: Prisma.TierOrderByWithRelationInput;
-  }): Promise<{ data: Tier[]; total: number }> {
-    const { skip, take, where, orderBy } = params;
+  }): Promise<Tier[]> {
+    const { where, orderBy } = params;
 
-    const [data, total] = await Promise.all([
-      this.repository.findMany({
-        skip,
-        take,
-        where,
-        orderBy: orderBy || { displayOrder: "asc" },
-      }),
-      this.repository.count({ where }),
-    ]);
+    const data = await this.repository.findMany({
+      where,
+      orderBy: orderBy || { displayOrder: "asc" },
+    });
 
-    return { data, total };
+    return data;
   }
 
   async findAllActive(): Promise<any[]> {

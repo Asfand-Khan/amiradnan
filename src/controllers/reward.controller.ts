@@ -4,6 +4,7 @@ import {
   CreateRewardInput,
   DeleteRewardInput,
   GetRewardInput,
+  GetTierRewardsInput,
   ListRewardsInput,
   RestoreRewardInput,
   UpdateRewardInput,
@@ -29,6 +30,17 @@ export class RewardController {
     const body: GetRewardInput = req.body;
     const reward = await this.rewardService.getRewardById(body.rewardId);
     ResponseUtil.success(res, reward, "Reward fetched successfully", 200);
+  });
+
+  getByTierId = catchAsync(async (req: Request, res: Response) => {
+    const body: GetTierRewardsInput = req.body;
+    const rewards = await this.rewardService.getRewardByTierId(body.tierId);
+    ResponseUtil.success(
+      res,
+      rewards,
+      "Tier Rewards fetched successfully",
+      200
+    );
   });
 
   getAll = catchAsync(async (req: Request, res: Response) => {

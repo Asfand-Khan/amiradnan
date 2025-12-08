@@ -334,4 +334,8 @@ export class PointsTransactionService {
       newTier: newTier ? newTier.name : "No change",
     };
   }
+
+  async getAllCustomersTransactions(): Promise<any[]> {
+    return await this.pointsTransactionRepository.getAllCustomersTransactions();
+  }
 }

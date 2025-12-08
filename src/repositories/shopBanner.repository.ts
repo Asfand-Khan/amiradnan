@@ -7,19 +7,29 @@ import {
 export class ShopBannerRepository {
   private repository = prisma.shopBanner;
 
-  async create(data: CreateShopBanner): Promise<void> {
-    let dataToInsert = data.banners.map((banner) => ({
-      name: data.name,
-      imageUrl: banner.imageUrl,
-      targetUrl: banner.targetUrl,
-      sorting: data.sorting,
-      type: data.type,
-      isAuto: data.isAuto,
-      delay: data.delay,
-      active: data.active,
-    }));
-
-    await this.repository.createMany({ data: dataToInsert });
+  async create(data: CreateShopBanner) {
+    const banner = await this.repository.create({
+      data: {
+        name: data.name,
+        sorting: data.sorting,
+        type: data.type,
+        isAuto: data.isAuto,
+        delay: data.delay,
+        active: data.active,
+        shopBannerDetails: {
+          createMany: {
+            data: data.banners.map((item) => ({
+              imageUrl: item.imageUrl,
+              targetUrl: item.targetUrl,
+            })),
+          },
+        },
+      },
+      include: {
+        shopBannerDetails: true,
+      },
+    });
+    return banner;
   }
 
   async getAll() {
@@ -28,21 +38,64 @@ export class ShopBannerRepository {
       where: {
         active: 1,
       },
+      include: {
+        shopBannerDetails: true,
+      },
     });
   }
 
   async getById(id: number) {
-    return await this.repository.findUnique({ where: { id } });
+    return await this.repository.findUnique({
+      where: { id },
+      include: {
+        shopBannerDetails: true,
+      },
+    });
   }
 
   async update(id: number, data: Partial<UpdateShopBanner>) {
-    return await this.repository.update({
-      where: { id },
-      data,
+    const { banners, ...rest } = data;
+
+    return await prisma.$transaction(async (tx) => {
+      await tx.shopBanner.update({
+        where: { id },
+        data: rest,
+      });
+
+      if (banners) {
+        await tx.shopBannerDetail.deleteMany({
+          where: { shopBannerId: id },
+        });
+
+        if (banners.length > 0) {
+          await tx.shopBannerDetail.createMany({
+            data: banners.map((b) => ({
+              shopBannerId: id,
+              imageUrl: b.imageUrl,
+              targetUrl: b.targetUrl,
+              sorting: b.sorting,
+            })),
+          });
+        }
+      }
+
+      return tx.shopBanner.findUnique({
+        where: { id },
+        include: {
+          shopBannerDetails: true,
+        },
+      });
     });
   }
 
   async delete(id: number) {
-    await this.repository.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.shopBannerDetail.deleteMany({
+        where: { shopBannerId: id },
+      });
+      await tx.shopBanner.delete({
+        where: { id },
+      });
+    });
   }
 }

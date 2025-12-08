@@ -18,24 +18,17 @@ export class ChallengeRepository {
   }
 
   async findAll(params: {
-    skip?: number;
-    take?: number;
     where?: Prisma.ChallengeWhereInput;
     orderBy?: Prisma.ChallengeOrderByWithRelationInput;
-  }): Promise<{ data: Challenge[]; total: number }> {
-    const { skip, take, where, orderBy } = params;
+  }): Promise<Challenge[]> {
+    const { where } = params;
 
-    const [data, total] = await Promise.all([
-      this.repository.findMany({
-        skip,
-        take,
-        where,
-        orderBy: orderBy || { createdAt: "desc" },
-      }),
-      this.repository.count({ where }),
-    ]);
+    const data = await this.repository.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
 
-    return { data, total };
+    return data;
   }
 
   async findAllActive(customerId: number): Promise<Challenge[]> {

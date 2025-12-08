@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { ShopBannerService } from "../services/shopBanner.service.js";
-import { CreateShopBanner } from "../validations/shopBanner.validations.js";
+import {
+  CreateShopBanner,
+  UpdateShopBanner,
+} from "../validations/shopBanner.validations.js";
 import { ResponseUtil } from "../utils/response.util.js";
 import { catchAsync } from "../utils/catchAsync.js";
 
@@ -26,6 +29,13 @@ export class ShopBannerController {
     const id = parseInt(req.params.id);
     const result = await this.shopBannerService.getById(id);
     ResponseUtil.success(res, result, "Banner retrieved successfully");
+  });
+
+  updateBanner = catchAsync(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const data: Partial<UpdateShopBanner> = req.body;
+    const result = await this.shopBannerService.update(id, data);
+    ResponseUtil.success(res, result, "Banner updated successfully");
   });
 
   deleteBanner = catchAsync(async (req: Request, res: Response) => {

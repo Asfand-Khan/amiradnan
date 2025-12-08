@@ -294,7 +294,7 @@ model PointsTransaction {
 model PricePointRule {
   id            Int      @id @default(autoincrement())
   pointsPerUnit Int      @default(1) @map("points_per_unit")
-  unitValue     Decimal  @default(100.00) @map("unit_value") @db.Decimal(12, 2)
+  unitValue     Int      @default(100) @map("unit_value")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -367,18 +367,35 @@ model TierReward {
 model ShopBanner {
   id        Int            @id @default(autoincrement())
   name      String?        @db.VarChar(200)
-  imageUrl  String?        @map("image_url") @db.VarChar(500)
-  targetUrl String?        @map("target_url") @db.VarChar(500)
-  sorting   String?
+  sorting   Int
   type      ShopBannerType
-  isAuto    Boolean?       @default(false) @map("is_auto")
-  delay     String?
+  isAuto    Boolean        @default(false) @map("is_auto")
+  delay     Int?
   active    Int            @default(1) @db.TinyInt
   isDeleted Int?           @default(0) @map("is_deleted")
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @default(now()) @updatedAt @map("updated_at")
 
+  shopBannerDetails ShopBannerDetail[]
+
   @@map("shop_banners")
+}
+
+model ShopBannerDetail {
+  id Int @id @default(autoincrement())
+
+  shopBannerId Int     @map("shop_banner_id")
+  imageUrl     String? @map("image_url") @db.VarChar(500)
+  targetUrl    String? @map("target_url") @db.VarChar(500)
+  sorting      Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  shopBanner ShopBanner @relation(fields: [shopBannerId], references: [id])
+
+  @@index([shopBannerId], map: "shop_banner_id_idx")
+  @@map("shop_banner_details")
 }
 
 model ShopUser {

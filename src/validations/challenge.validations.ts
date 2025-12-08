@@ -23,9 +23,12 @@ export const createChallengeSchema = z.object({
 
 export const updateChallengeSchema = z.object({
   challengeId: z
-    .string()
-    .regex(/^\d+$/, "Invalid challenge ID")
-    .transform(Number),
+    .number({
+      required_error: "Challenge ID is required",
+      invalid_type_error: "Challenge ID must be a number",
+    })
+    .int("Challenge ID must be an integer")
+    .positive("Challenge ID must be a positive number"),
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   type: challengeTypeEnum.optional(),
@@ -42,7 +45,13 @@ export const updateChallengeSchema = z.object({
 });
 
 export const singleChallengeSchema = z.object({
-  id: z.string().regex(/^\d+$/, "Invalid ID format").transform(Number),
+  id: z
+    .number({
+      required_error: "Challenge ID is required",
+      invalid_type_error: "Challenge ID must be a number",
+    })
+    .int("Challenge ID must be an integer")
+    .positive("Challenge ID must be a positive number"),
 });
 
 export const listChallengesSchema = z.object({
@@ -91,4 +100,6 @@ export type DeleteChallengeInput = z.infer<typeof singleChallengeSchema>;
 export type ListChallengesInput = z.infer<typeof listChallengesSchema>;
 export type EnrollCustomerInput = z.infer<typeof enrollCustomerSchema>;
 export type UpdateProgressInput = z.infer<typeof updateProgressSchema>;
-export type GetCustomerChallengesInput = z.infer<typeof getCustomerChallengesSchema>;
+export type GetCustomerChallengesInput = z.infer<
+  typeof getCustomerChallengesSchema
+>;

@@ -16,7 +16,7 @@ router.use(authenticateToken);
 
 router.post("/", validateResource(createWidgetSchema), widgetController.create);
 router.get("/", widgetController.getAll);
-router.get(
+router.post(
   "/single",
   validateResource(singleWidgetSchema),
   widgetController.getById

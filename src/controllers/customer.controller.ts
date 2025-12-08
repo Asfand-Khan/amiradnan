@@ -16,6 +16,7 @@ import { ChallengeType, TransactionType } from "@prisma/client";
 import { TierService } from "../services/tier.service.js";
 import { WidgetService } from "../services/widget.service.js";
 import { AppError } from "../middleware/error.middleware.js";
+import { RewardService } from "../services/reward.service.js";
 
 export class CustomerController {
   private customerService: CustomerService;
@@ -23,6 +24,7 @@ export class CustomerController {
   private challengeService: ChallengeService;
   private tierService: TierService;
   private widgetService: WidgetService;
+  private rewardService: RewardService;
 
   constructor() {
     this.customerService = new CustomerService();
@@ -30,6 +32,7 @@ export class CustomerController {
     this.challengeService = new ChallengeService();
     this.tierService = new TierService();
     this.widgetService = new WidgetService();
+    this.rewardService = new RewardService();
   }
 
   getProfile = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -181,6 +184,26 @@ export class CustomerController {
     );
   });
 
+  getCustomerRewards = catchAsync(async (req: AuthRequest, res: Response) => {
+    const { customerId }: CustomerById = req.body;
+    const availablePoints =
+      await this.pointsTransactionService.getAvailablePoints(customerId);
+    const tier = await this.tierService.calculateTierByPoints(availablePoints);
+
+    if (!tier) {
+      throw new AppError("Tier not found", 404);
+    }
+
+    const rewards = await this.rewardService.getRewardByTierId(tier.id);
+    ResponseUtil.success(
+      res,
+      {
+        rewards,
+      },
+      "Customer rewards fetched successfully"
+    );
+  });
+
   assignPoints = catchAsync(async (req: AuthRequest, res: Response) => {
     const { customerId, orderNo, orderAmount }: AssignPoints = req.body;
     const result = await this.pointsTransactionService.processOrder(
@@ -197,21 +220,39 @@ export class CustomerController {
     ResponseUtil.success(res, null, "Fcm Token removed successfully");
   });
 
-  getCustomerTransactionHistory = catchAsync(async (req: AuthRequest, res: Response) => {
-    const { customerId } = req.query;
+  getCustomerTransactionHistory = catchAsync(
+    async (req: AuthRequest, res: Response) => {
+      const { customerId } = req.query;
 
-    if(!customerId){
-      throw new AppError("Customer Id is required", 400);
+      if (!customerId) {
+        throw new AppError("Customer Id is required", 400);
+      }
+
+      const transactions =
+        await this.pointsTransactionService.getCustomerTransaction(
+          +customerId!
+        );
+      ResponseUtil.success(
+        res,
+        {
+          transactions,
+        },
+        "Customer transaction fetched successfully"
+      );
     }
+  );
 
-    const transactions =
-      await this.pointsTransactionService.getCustomerTransaction(+customerId!);
-    ResponseUtil.success(
-      res,
-      {
-        transactions,
-      },
-      "Customer transaction fetched successfully"
-    );
-  });
+  getAllCustomersTransactions = catchAsync(
+    async (_req: AuthRequest, res: Response) => {
+      const transactions =
+        await this.pointsTransactionService.getAllCustomersTransactions();
+      ResponseUtil.success(
+        res,
+        {
+          transactions,
+        },
+        "All customers transactions fetched successfully"
+      );
+    }
+  );
 }

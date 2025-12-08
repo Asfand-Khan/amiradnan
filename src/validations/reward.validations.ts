@@ -14,6 +14,10 @@ export const singleRewardSchema = z.object({
   rewardId: z.number().int().positive("Reward ID is required"),
 });
 
+export const tierRewardsSchema = z.object({
+  tierId: z.number().int().positive("Tier ID is required"),
+});
+
 export const listRewardsSchema = z.object({
   active: z
     .string()
@@ -29,3 +33,4 @@ export type GetRewardInput = z.infer<typeof singleRewardSchema>;
 export type DeleteRewardInput = z.infer<typeof singleRewardSchema>;
 export type ListRewardsInput = z.infer<typeof listRewardsSchema>;
 export type RestoreRewardInput = z.infer<typeof singleRewardSchema>;
+export type GetTierRewardsInput = z.infer<typeof tierRewardsSchema>;

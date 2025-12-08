@@ -55,7 +55,11 @@ router.get("/journey", customerController.getCustomerJourney);
  * @desc    Assign points to customer
  * @access  Private
  */
-router.post("/assign-points",validateResource(assignPointsSchema), customerController.assignPoints);
+router.post(
+  "/assign-points",
+  validateResource(assignPointsSchema),
+  customerController.assignPoints
+);
 
 /**
  * @route   GET /api/customers/transactions
@@ -63,5 +67,23 @@ router.post("/assign-points",validateResource(assignPointsSchema), customerContr
  * @access  Private
  */
 router.get("/transactions", customerController.getCustomerTransactionHistory);
+
+/**
+ * @route   GET /api/customers/all-transaction
+ * @desc    Fetch all customers transactions
+ * @access  Private
+ */
+router.get("/all-transaction", customerController.getAllCustomersTransactions);
+
+/**
+ * @route   GET /api/customers/rewards
+ * @desc    Get customer rewards for membership
+ * @access  Private
+ */
+router.post(
+  "/rewards",
+  validateResource(customerByIdSchema),
+  customerController.getCustomerRewards
+);
 
 export default router;

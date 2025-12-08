@@ -64,56 +64,13 @@ export class ChallengeService {
     return challenge;
   }
 
-  async getAllChallenges(params: {
-    page: number;
-    limit: number;
-    type?: ChallengeType;
-    channel?: Channel;
-    active?: boolean;
-    search?: string;
-  }): Promise<{
-    data: Challenge[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
-    const skip = (params.page - 1) * params.limit;
-
-    const where: Prisma.ChallengeWhereInput = {
-      isDeleted: false,
-    };
-
-    if (params.type) {
-      where.type = params.type;
-    }
-
-    if (params.channel) {
-      where.channel = params.channel;
-    }
-
-    if (params.active !== undefined) {
-      where.active = params.active;
-    }
-
-    if (params.search) {
-      where.OR = [
-        { name: { contains: params.search } },
-        { description: { contains: params.search } },
-      ];
-    }
-
-    const { data, total } = await this.challengeRepository.findAll({
-      skip,
-      take: params.limit,
-      where,
+  async getAllChallenges(): Promise<Challenge[]> {
+    const data = await this.challengeRepository.findAll({
+      where: {
+        isDeleted: false,
+      },
     });
-
-    return {
-      data,
-      total,
-      page: params.page,
-      totalPages: Math.ceil(total / params.limit),
-    };
+    return data;
   }
 
   async getAllActiveChallenges(customerId: number): Promise<Challenge[]> {

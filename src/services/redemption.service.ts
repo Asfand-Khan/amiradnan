@@ -56,6 +56,10 @@ export class RedemptionService {
     return await this.redemptionRepository.findAll(where);
   }
 
+  async getAllRedemptionList(): Promise<Redemption[]> {
+    return await this.redemptionRepository.findAll();
+  }
+
   async updateRedemption(
     id: number,
     data: Partial<{ rewardId: number; locationId: number }>

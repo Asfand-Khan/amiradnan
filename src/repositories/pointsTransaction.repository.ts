@@ -502,6 +502,42 @@ export class PointsTransactionRepository {
     }));
   }
 
+  async getAllCustomersTransactions() {
+    const transactions = await this.repository.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        challenge: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const currentTime = new Date();
+
+    return transactions.map((tx) => ({
+      ...tx,
+      isExpired: tx.expiryDate < currentTime,
+      status: tx.expiryDate < currentTime ? "Expired" : "Valid",
+    }));
+  }
+
   async getLatestPricePointRule(): Promise<PricePointRule | null> {
     return await this.pricePointRuleRepository.findFirst({
       orderBy: { createdAt: "desc" },

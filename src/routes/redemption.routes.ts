@@ -37,6 +37,9 @@ router.get(
   redemptionController.getAll
 );
 
+// List redemptions
+router.get("/all", redemptionController.getAllRedemptionList);
+
 // Update redemption
 router.put(
   "/update",
