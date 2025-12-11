@@ -26,6 +26,13 @@ router.post(
 );
 
 /**
+ * @route   GET /api/customers/list
+ * @desc    Get all customers list
+ * @access  Private
+ */
+router.get("/list", customerController.getAllCustomersDashboard);
+
+/**
  * @route   GET /api/users/:userId
  * @desc    Get user by ID
  * @access  Private

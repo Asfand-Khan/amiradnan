@@ -65,6 +65,13 @@ export class CustomerController {
     ResponseUtil.success(res, users);
   });
 
+  getAllCustomersDashboard = catchAsync(
+    async (_req: AuthRequest, res: Response) => {
+      const customers = await this.customerService.getAllCustomersDashboard();
+      ResponseUtil.success(res, customers, "Customers fetched successfully");
+    }
+  );
+
   createMeasurement = catchAsync(async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
     const data: CreateCustomerMeasurement = req.body;

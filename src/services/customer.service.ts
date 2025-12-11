@@ -134,6 +134,11 @@ export class CustomerService {
     };
   }
 
+  async getAllCustomersDashboard() {
+    const customers = await this.customerRepository.findAllDashboard();
+    return customers;
+  }
+
   async createMeasurement(userId: number, data: CreateCustomerMeasurement) {
     const measurements = await this.customerRepository.createMeasurement(
       userId,

@@ -73,6 +73,16 @@ export class CustomerRepository {
     return { customers, total };
   }
 
+  async findAllDashboard(): Promise<Customer[]> {
+    const customers = await this.repository.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        customerMeasurements: true,
+      },
+    });
+    return customers;
+  }
+
   async update(id: number, userData: UpdateCustomer): Promise<Customer | null> {
     const updated = await this.repository.update({
       where: { id },

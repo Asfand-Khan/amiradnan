@@ -49,11 +49,19 @@ export class EmailService {
       to: email,
       subject: "Welcome to Amir Adnan!",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Welcome, ${fullName}!</h2>
-          <p>Thank you for joining our dating app. We're excited to have you here!</p>
-          <p>Start exploring and connect with amazing people today.</p>
-          <p style="color: #666; font-size: 14px; margin-top: 30px;">If you have any questions, feel free to reach out to our support team.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+          <div style="background-color: #000; color: #fff; padding: 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: normal;">Welcome to Amir Adnan</h1>
+          </div>
+          <div style="padding: 30px;">
+            <h2 style="color: #333; margin-top: 0;">Dear ${fullName},</h2>
+            <p style="color: #555; line-height: 1.6;">Thank you for joining the Amir Adnan family. We are delighted to welcome you to a world of exquisite craftsmanship, timeless elegance, and unparalleled style.</p>
+            <p style="color: #555; line-height: 1.6;">Prepare to discover our latest collections, exclusive designs, and everything that defines the Amir Adnan experience.</p>
+            <p style="text-align: center; margin-top: 30px;">
+              <a href="https://amiradnan.com/" style="display: inline-block; padding: 12px 25px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Explore Our Collection</a>
+            </p>
+            <p style="color: #777; font-size: 13px; margin-top: 40px; text-align: center;">For any inquiries, please do not hesitate to contact our customer service team.</p>
+          </div>
         </div>
       `,
     };
