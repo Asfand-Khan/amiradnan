@@ -20,8 +20,8 @@ export const createPromotionSchema = z.object({
 });
 
 export const updatePromotionSchema = createPromotionSchema.partial().extend({
-    active: z.boolean().optional()
-})
+  active: z.boolean().optional(),
+});
 
 export type CreatePromotion = z.infer<typeof createPromotionSchema>;
 export type UpdatePromotion = z.infer<typeof updatePromotionSchema>;

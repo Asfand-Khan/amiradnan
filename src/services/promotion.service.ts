@@ -32,15 +32,14 @@ export class PromotionService {
   }
 
   async updatePromotion(id: number, data: UpdatePromotion) {
-    let image;
-    if (data.image) {
-      image = await saveBase64Image(data.image, "promotions");
+    const updatePayload: Partial<UpdatePromotion> = { ...data };
+
+    if (data.image !== undefined) {
+      const imagePath = await saveBase64Image(data.image, "promotions");
+      updatePayload.image = imagePath;
     }
 
-    const promotion = await this.promotionRepository.update(id, {
-      image,
-      ...data,
-    });
+    const promotion = await this.promotionRepository.update(id, updatePayload);
 
     if (!promotion) {
       throw new AppError("Promotion not found", 404);
