@@ -2,12 +2,15 @@ import { Challenge, ChallengeType, Channel } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { ChallengeRepository } from "../repositories/challenge.repository.js";
 import { AppError } from "../middleware/error.middleware.js";
+import { NotificationService } from "./notification.service.js";
 
 export class ChallengeService {
   private challengeRepository: ChallengeRepository;
+  private notificationRepository: NotificationService;
 
   constructor() {
     this.challengeRepository = new ChallengeRepository();
+    this.notificationRepository = new NotificationService();
   }
 
   async createChallenge(data: {
@@ -149,12 +152,26 @@ export class ChallengeService {
       throw new AppError("Customer is already enrolled in this challenge");
     }
 
-    return await this.challengeRepository.enrollCustomer(
+    const result = await this.challengeRepository.enrollCustomer(
       challengeId,
       customerId,
       progressCount,
       completed
     );
+
+    // Send notification (Fire and forget)
+    this.notificationRepository
+      .sendCustomerNotification(
+        customerId,
+        "Challenge Joined!",
+        "You have successfully joined the challenge.",
+        "challenge_participated"
+      )
+      .catch((err) =>
+        console.error("Failed to send challenge join notification", err)
+      );
+
+    return result;
   }
 
   async updateProgress(
@@ -190,6 +207,18 @@ export class ChallengeService {
     // Mark as completed if conditions met
     if (isCompleted) {
       await this.challengeRepository.markAsCompleted(challengeId, customerId);
+
+      // Send notification (Fire and forget)
+      this.notificationRepository
+        .sendCustomerNotification(
+          customerId,
+          "Challenge Completed!",
+          `Congratulations! You have completed the ${challenge.name} challenge.`,
+          "challenge_completed"
+        )
+        .catch((err) =>
+          console.error("Failed to send challenge completion notification", err)
+        );
     }
 
     return updated;

@@ -1,26 +1,14 @@
-import nodemailer from "nodemailer";
-import { config } from "../config/environment.js";
+import { config, mg } from "../config/environment.js";
 
 export class EmailService {
-  private transporter: nodemailer.Transporter;
-
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      // secure: false,
-      auth: {
-        user: config.email.user,
-        pass: config.email.password,
-      },
-    });
-  }
+  constructor() {}
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
     const resetUrl = `${config.server.url}/reset-password?token=${token}`;
+    const domain = config.mailGun.domain;
 
-    const mailOptions = {
-      // from: config.email.from,
+    const data = {
+      from: config.email.from,
       to: email,
       subject: "Password Reset Request",
       html: `
@@ -37,15 +25,18 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await mg.messages.create(domain, data);
     } catch (error) {
+      console.error("Error sending password reset email:", error);
       throw new Error("Failed to send password reset email");
     }
   }
 
   async sendWelcomeEmail(email: string, fullName: string): Promise<void> {
-    const mailOptions = {
-      // from: config.email.from,
+    const domain = config.mailGun.domain;
+
+    const data = {
+      from: config.email.from,
       to: email,
       subject: "Welcome to Amir Adnan!",
       html: `
@@ -67,7 +58,7 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await mg.messages.create(domain, data);
       console.log(`Welcome email sent to ${email}`);
     } catch (error) {
       console.error("Error sending welcome email:", error);

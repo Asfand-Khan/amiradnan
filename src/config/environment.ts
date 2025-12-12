@@ -44,6 +44,7 @@ export const config = {
   },
   mailGun: {
     apiKey: process.env.MAILGUN_API_KEY || "",
+    domain: process.env.MAILGUN_DOMAIN || "",
   },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -58,11 +59,10 @@ export const config = {
   },
 };
 
-// Export initialized Mailgun instance
 const mailgun = new Mailgun(formData);
-export const mg: ReturnType<typeof mailgun.client> = mailgun.client({
+export const mg: any = mailgun.client({
   username: "api",
-  key: config.mailGun.apiKey,
+  key: process.env.MAILGUN_API_KEY || "",
 });
 
 export default config;

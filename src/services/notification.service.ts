@@ -71,6 +71,68 @@ export class NotificationService {
     return notification;
   }
 
+  async sendCustomerNotification(
+    customerId: number,
+    title: string,
+    body: string,
+    type: NotificationType
+  ): Promise<void> {
+    try {
+      // 1. Create Notification in DB Linked to Customer
+      await this.notificationRepository.create({
+        title,
+        body,
+        type,
+        customerId,
+      });
+
+      // 2. Send Push Notification to Customer Device
+      if (this.firebaseInitialized) {
+        const deviceToken = await this.customerRepository.getDeviceToken(
+          customerId
+        );
+        if (deviceToken) {
+          await this.sendPushNotificationToDevice(
+            deviceToken,
+            title,
+            body,
+            type
+          );
+        }
+      }
+    } catch (error) {
+      console.error(
+        `Failed to send notification to customer ${customerId}:`,
+        error
+      );
+    }
+  }
+
+  private async sendPushNotificationToDevice(
+    token: string,
+    title: string,
+    body: string,
+    type: NotificationType
+  ) {
+    const message: admin.messaging.Message = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type,
+      },
+      token,
+    };
+
+    try {
+      await admin.messaging().send(message);
+      console.log(`Notification sent to device: ${token}`);
+    } catch (error) {
+      console.error("Error sending push notification to device:", error);
+    }
+  }
+
   private async sendPushNotification(
     title: string,
     body: string,

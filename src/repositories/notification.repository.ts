@@ -12,6 +12,19 @@ export class NotificationRepository {
     });
   }
 
+  async findAllByCustomerId(
+    customerId: number
+  ): Promise<{ notifications: Notification[] }> {
+    const notifications = await this.repository.findMany({
+      where: {
+        customerId,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { notifications };
+  }
+
   async findAll(): Promise<{ notifications: Notification[] }> {
     const notifications = await this.repository.findMany({
       orderBy: { createdAt: "desc" },
