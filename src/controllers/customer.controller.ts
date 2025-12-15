@@ -293,6 +293,7 @@ export class CustomerController {
         await this.pointsTransactionService.getAllCustomersTransactions(
           locationId
         );
+
       ResponseUtil.success(
         res,
         {
