@@ -502,8 +502,13 @@ export class PointsTransactionRepository {
     }));
   }
 
-  async getAllCustomersTransactions() {
+  async getAllCustomersTransactions(locationId?: number) {
+    const where: Prisma.PointsTransactionWhereInput = locationId
+      ? { locationId }
+      : {};
+
     const transactions = await this.repository.findMany({
+      where,
       orderBy: {
         createdAt: "desc",
       },

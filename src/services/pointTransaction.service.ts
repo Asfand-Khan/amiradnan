@@ -10,16 +10,19 @@ import { PointsTransactionRepository } from "../repositories/pointsTransaction.r
 import { AppError } from "../middleware/error.middleware.js";
 import { ChallengeService } from "./challenge.service.js";
 import { TierService } from "./tier.service.js";
+import { NotificationService } from "./notification.service.js";
 
 export class PointsTransactionService {
   private pointsTransactionRepository: PointsTransactionRepository;
   private challengeService: ChallengeService;
   private tierService: TierService;
+  private notificationService: NotificationService;
 
   constructor() {
     this.pointsTransactionRepository = new PointsTransactionRepository();
     this.challengeService = new ChallengeService();
     this.tierService = new TierService();
+    this.notificationService = new NotificationService();
   }
 
   async createTransaction(data: {
@@ -43,17 +46,6 @@ export class PointsTransactionService {
       }
     }
 
-    // Validate customer has sufficient points for debit transactions
-    // if (data.points < 0) {
-    //   const balance = await this.pointsTransactionRepository.getCustomerBalance(
-    //     data.customerId
-    //   );
-
-    //   if (!balance || balance.availablePoints < Math.abs(data.points)) {
-    //     throw new Error("Insufficient points balance");
-    //   }
-    // }
-
     const transactionData: Prisma.PointsTransactionCreateInput = {
       customer: { connect: { id: data.customerId } },
       challenge: data.challengeId
@@ -74,31 +66,6 @@ export class PointsTransactionService {
     const transaction = await this.pointsTransactionRepository.create(
       transactionData
     );
-
-    // Update customer balance
-    // await this.pointsTransactionRepository.createOrUpdateBalance(
-    //   data.customerId,
-    //   data.points
-    // );
-
-    // Create expiry batch for credit transactions
-    // if (data.points > 0) {
-    //   const expiryDate = new Date(data.expiryDate);
-    //   await this.pointsTransactionRepository.createExpiryBatch(
-    //     data.customerId,
-    //     transaction.id,
-    //     data.points,
-    //     expiryDate
-    //   );
-    // }
-
-    // Deduct from expiry batches for debit transactions
-    // if (data.points < 0) {
-    //   await this.pointsTransactionRepository.deductFromExpiryBatches(
-    //     data.customerId,
-    //     Math.abs(data.points)
-    //   );
-    // }
 
     return transaction;
   }
@@ -287,11 +254,30 @@ export class PointsTransactionService {
           challengeId: challenge.id,
           expiryDays: pointsExpiry ? pointsExpiry.expiryDays : 365,
         });
+
+        // Send notification (Fire and forget)
+        this.notificationService
+          .sendCustomerNotification(
+            customerId,
+            `${challenge.bonusPoints} Points Awarded!`,
+            `You've earned ${challenge.bonusPoints} points for making progress in the "${challenge.name}" challenge! Keep up the great work.`,
+            challenge.customerUsage >= progressUpdate
+              ? "challenge_completed"
+              : "challenge_participated"
+          )
+          .catch((err) =>
+            console.error("Failed to send points awarded notification", err)
+          );
       }
     }
   }
 
-  async processOrder(orderNo: string, customerId: number, orderAmt: number) {
+  async processOrder(
+    orderNo: string,
+    customerId: number,
+    orderAmt: number,
+    locationId: number | undefined
+  ) {
     // 1. Check if order already processed (idempotency)
     const existingTx = await this.findByReferenceId(orderNo);
     if (existingTx) {
@@ -299,7 +285,7 @@ export class PointsTransactionService {
     }
 
     // 2. Get Default Points Expiry
-    const pointsExpiry = await this.pointsExpiryDefault(); // get default expiry days or duration
+    const pointsExpiry = await this.pointsExpiryDefault();
 
     // 3. Calculate Points
     const orderAmount = parseFloat(orderAmt.toString());
@@ -314,6 +300,7 @@ export class PointsTransactionService {
       orderAmount: orderAmount,
       note: `Points for QR Order #${orderNo}`,
       expiryDays: pointsExpiry ? pointsExpiry.expiryDays : 365,
+      locationId,
     });
 
     // 5. Check Challenges
@@ -327,6 +314,18 @@ export class PointsTransactionService {
       await this.getAvailablePoints(customerId)
     );
 
+    // Send notification (Fire and forget)
+    this.notificationService
+      .sendCustomerNotification(
+        customerId,
+        `${points} Points Awarded!`,
+        `You've earned ${points} points for your recent order! Keep collecting to unlock exciting rewards.`,
+        "transaction"
+      )
+      .catch((err) =>
+        console.error("Failed to send points awarded notification", err)
+      );
+
     return {
       success: true,
       message: "Order processed successfully",
@@ -335,7 +334,9 @@ export class PointsTransactionService {
     };
   }
 
-  async getAllCustomersTransactions(): Promise<any[]> {
-    return await this.pointsTransactionRepository.getAllCustomersTransactions();
+  async getAllCustomersTransactions(locationId?: number): Promise<any[]> {
+    return await this.pointsTransactionRepository.getAllCustomersTransactions(
+      locationId
+    );
   }
 }

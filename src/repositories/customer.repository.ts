@@ -73,8 +73,19 @@ export class CustomerRepository {
     return { customers, total };
   }
 
-  async findAllDashboard(): Promise<Customer[]> {
+  async findAllDashboard(locationId?: number): Promise<Customer[]> {
+    const where: Prisma.CustomerWhereInput = locationId
+      ? {
+          pointsTransactions: {
+            some: {
+              locationId: locationId,
+            },
+          },
+        }
+      : {};
+
     const customers = await this.repository.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       include: {
         customerMeasurements: true,

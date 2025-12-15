@@ -5,6 +5,7 @@ import { TierService } from "./tier.service.js";
 import prisma from "../config/database.js";
 import { TransactionType, ChallengeType, Channel } from "@prisma/client";
 import config from "../config/environment.js";
+import { NotificationService } from "./notification.service.js";
 
 export class ShopifyService {
   private pointsTransactionService: PointsTransactionService;
@@ -12,11 +13,13 @@ export class ShopifyService {
   private tierService: TierService;
   private shopifyDomain = config.shopify.domain;
   private shopifyToken = config.shopify.accessToken;
+  private notificationService: NotificationService;
 
   constructor() {
     this.pointsTransactionService = new PointsTransactionService();
     this.challengeService = new ChallengeService();
     this.tierService = new TierService();
+    this.notificationService = new NotificationService();
   }
 
   async processOrder(orderNo: string, customerId: number) {
@@ -78,6 +81,18 @@ export class ShopifyService {
       customerId,
       await this.pointsTransactionService.getAvailablePoints(customerId)
     );
+
+    // Send notification (Fire and forget)
+    this.notificationService
+      .sendCustomerNotification(
+        customerId,
+        `${points} Points Awarded!`,
+        `You've earned ${points} points for your recent order! Keep collecting to unlock exciting rewards.`,
+        "transaction"
+      )
+      .catch((err) =>
+        console.error("Failed to send points awarded notification", err)
+      );
 
     return {
       success: true,
@@ -226,6 +241,20 @@ export class ShopifyService {
           challengeId: challenge.id,
           expiryDays: pointsExpiry ? pointsExpiry.expiryDays : 365,
         });
+
+        // Send notification (Fire and forget)
+        this.notificationService
+          .sendCustomerNotification(
+            customerId,
+            `${challenge.bonusPoints} Points Awarded!`,
+            `You've earned ${challenge.bonusPoints} points for making progress in the "${challenge.name}" challenge! Keep up the great work.`,
+            challenge.customerUsage >= progressUpdate
+              ? "challenge_completed"
+              : "challenge_participated"
+          )
+          .catch((err) =>
+            console.error("Failed to send points awarded notification", err)
+          );
       }
     }
   }

@@ -17,6 +17,7 @@ import { TierService } from "../services/tier.service.js";
 import { WidgetService } from "../services/widget.service.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { RewardService } from "../services/reward.service.js";
+import { ShopUserService } from "../services/shopUser.service.js";
 
 export class CustomerController {
   private customerService: CustomerService;
@@ -25,6 +26,7 @@ export class CustomerController {
   private tierService: TierService;
   private widgetService: WidgetService;
   private rewardService: RewardService;
+  private shopUserService: ShopUserService;
 
   constructor() {
     this.customerService = new CustomerService();
@@ -33,6 +35,7 @@ export class CustomerController {
     this.tierService = new TierService();
     this.widgetService = new WidgetService();
     this.rewardService = new RewardService();
+    this.shopUserService = new ShopUserService();
   }
 
   getProfile = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -66,8 +69,22 @@ export class CustomerController {
   });
 
   getAllCustomersDashboard = catchAsync(
-    async (_req: AuthRequest, res: Response) => {
-      const customers = await this.customerService.getAllCustomersDashboard();
+    async (req: AuthRequest, res: Response) => {
+      const userId = req.user!.id;
+      const user = await this.shopUserService.getUserById(userId);
+
+      let locationId: number | undefined;
+
+      if (user.role !== "admin") {
+        if (!user.locationId) {
+          throw new AppError("User is not assigned to any location", 403);
+        }
+        locationId = user.locationId;
+      }
+
+      const customers = await this.customerService.getAllCustomersDashboard(
+        locationId
+      );
       ResponseUtil.success(res, customers, "Customers fetched successfully");
     }
   );
@@ -212,12 +229,21 @@ export class CustomerController {
   });
 
   assignPoints = catchAsync(async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.id;
+    const user = await this.shopUserService.getUserById(userId);
+
+    if (!user) {
+      throw new AppError("Shop User not found", 404);
+    }
+
     const { customerId, orderNo, orderAmount }: AssignPoints = req.body;
     const result = await this.pointsTransactionService.processOrder(
       orderNo,
       customerId,
-      orderAmount
+      orderAmount,
+      user.locationId ? user.locationId : undefined
     );
+
     ResponseUtil.success(res, result, "Order processed successfully");
   });
 
@@ -250,9 +276,23 @@ export class CustomerController {
   );
 
   getAllCustomersTransactions = catchAsync(
-    async (_req: AuthRequest, res: Response) => {
+    async (req: AuthRequest, res: Response) => {
+      const userId = req.user!.id;
+      const user = await this.shopUserService.getUserById(userId);
+
+      let locationId: number | undefined;
+
+      if (user.role !== "admin") {
+        if (!user.locationId) {
+          throw new AppError("User is not assigned to any location", 403);
+        }
+        locationId = user.locationId;
+      }
+
       const transactions =
-        await this.pointsTransactionService.getAllCustomersTransactions();
+        await this.pointsTransactionService.getAllCustomersTransactions(
+          locationId
+        );
       ResponseUtil.success(
         res,
         {

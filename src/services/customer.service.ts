@@ -134,8 +134,10 @@ export class CustomerService {
     };
   }
 
-  async getAllCustomersDashboard() {
-    const customers = await this.customerRepository.findAllDashboard();
+  async getAllCustomersDashboard(locationId?: number) {
+    const customers = await this.customerRepository.findAllDashboard(
+      locationId
+    );
     return customers;
   }
 
