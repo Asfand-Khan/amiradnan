@@ -47,23 +47,24 @@ model AuditLog {
 }
 
 model Challenge {
-  id                Int           @id @default(autoincrement())
-  name              String        @db.VarChar(255)
-  description       String?       @db.Text
-  type              ChallengeType
-  requiredAmount    Decimal       @default(0.00) @map("required_amount") @db.Decimal(12, 2)
-  requiredPurchases Int           @default(0) @map("required_purchases")
-  durationDays      Int?          @map("duration_days")
-  customerUsage     Int?          @map("customer_usage")
-  channel           Channel       @default(any)
-  bonusPoints       Int           @default(0) @map("bonus_points")
-  bonusPercent      Decimal       @default(0.00) @map("bonus_percent") @db.Decimal(6, 2)
-  startAt           DateTime?     @map("start_at")
-  endAt             DateTime?     @map("end_at")
-  active            Boolean       @default(true)
-  isDeleted         Boolean       @default(false)
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at")
+  id                   Int           @id @default(autoincrement())
+  name                 String        @db.VarChar(255)
+  description          String?       @db.Text
+  type                 ChallengeType
+  requiredAmount       Decimal       @default(0.00) @map("required_amount") @db.Decimal(12, 2)
+  requiredPurchases    Int           @default(0) @map("required_purchases")
+  durationDays         Int?          @map("duration_days")
+  customerUsage        Int?          @map("customer_usage")
+  channel              Channel       @default(any)
+  bonusPoints          Int           @default(0) @map("bonus_points")
+  bonusPercent         Decimal       @default(0.00) @map("bonus_percent") @db.Decimal(6, 2)
+  notificationBodyText String?       @map("notification_body_text") @db.Text
+  startAt              DateTime?     @map("start_at")
+  endAt                DateTime?     @map("end_at")
+  active               Boolean       @default(true)
+  isDeleted            Boolean       @default(false)
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at")
 
   participants       ChallengeParticipant[]
   pointsTransactions PointsTransaction[]

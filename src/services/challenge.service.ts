@@ -24,6 +24,7 @@ export class ChallengeService {
     startAt?: string;
     endAt?: string;
     active: boolean;
+    notificationBodyText: string;
   }): Promise<Challenge> {
     const challengeData: Prisma.ChallengeCreateInput = {
       name: data.name,
@@ -36,6 +37,7 @@ export class ChallengeService {
       channel: data.channel,
       bonusPoints: data.bonusPoints,
       bonusPercent: data.bonusPercent,
+      notificationBodyText: data.notificationBodyText,
       startAt: data.startAt ? new Date(data.startAt) : null,
       endAt: data.endAt ? new Date(data.endAt) : null,
       active: data.active,
@@ -93,6 +95,7 @@ export class ChallengeService {
       startAt?: string;
       endAt?: string;
       active: boolean;
+      notificationBodyText: string;
     }>
   ): Promise<Challenge> {
     // Check if challenge exists
@@ -103,6 +106,8 @@ export class ChallengeService {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined)
       updateData.description = data.description;
+    if (data.notificationBodyText !== undefined)
+      updateData.notificationBodyText = data.notificationBodyText;
     if (data.type !== undefined) updateData.type = data.type;
     if (data.requiredAmount !== undefined)
       updateData.requiredAmount = data.requiredAmount;

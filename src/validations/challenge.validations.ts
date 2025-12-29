@@ -16,6 +16,10 @@ export const createChallengeSchema = z.object({
   channel: channelEnum.default(Channel.any),
   bonusPoints: z.number().int().min(0).default(0),
   bonusPercent: z.number().min(0).max(100).default(0),
+  notificationBodyText: z
+    .string()
+    .min(1, "Notification body text is required")
+    .max(255, "Notification body text too long"),
   startAt: z.string().datetime().optional(),
   endAt: z.string().datetime().optional(),
   active: z.boolean().default(true),
@@ -39,6 +43,7 @@ export const updateChallengeSchema = z.object({
   channel: channelEnum.optional(),
   bonusPoints: z.number().int().min(0).optional(),
   bonusPercent: z.number().min(0).max(100).optional(),
+  notificationBodyText: z.string().optional(),
   startAt: z.string().datetime().optional(),
   endAt: z.string().datetime().optional(),
   active: z.boolean().optional(),
