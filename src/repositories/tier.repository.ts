@@ -38,6 +38,17 @@ export class TierRepository {
     const data = await this.repository.findMany({
       where,
       orderBy: orderBy || { displayOrder: "asc" },
+      include: {
+        tierRewards: {
+          select: {
+            reward: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return data;
