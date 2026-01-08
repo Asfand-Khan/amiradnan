@@ -18,6 +18,7 @@ import { WidgetService } from "../services/widget.service.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { RewardService } from "../services/reward.service.js";
 import { ShopUserService } from "../services/shopUser.service.js";
+import { NotificationService } from "../services/notification.service.js";
 
 export class CustomerController {
   private customerService: CustomerService;
@@ -27,6 +28,7 @@ export class CustomerController {
   private widgetService: WidgetService;
   private rewardService: RewardService;
   private shopUserService: ShopUserService;
+  private notificationService: NotificationService;
 
   constructor() {
     this.customerService = new CustomerService();
@@ -36,6 +38,7 @@ export class CustomerController {
     this.widgetService = new WidgetService();
     this.rewardService = new RewardService();
     this.shopUserService = new ShopUserService();
+    this.notificationService = new NotificationService();
   }
 
   getProfile = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -134,6 +137,18 @@ export class CustomerController {
           measurements.customer_id,
           availablePoints
         ); // assign customer to a tier
+
+        // Send notification (Fire and forget)
+        this.notificationService
+          .sendCustomerNotification(
+            measurements.customer_id,
+            `${challenge.bonusPoints} Points Awarded!`,
+            `You've earned ${challenge.bonusPoints} points for making progress in the "${challenge.name}" challenge! Keep up the great work.`,
+            "challenge_completed"
+          )
+          .catch((err) =>
+            console.error("Failed to send points awarded notification", err)
+          );
       }
     }
 
