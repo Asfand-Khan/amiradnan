@@ -13,6 +13,11 @@ const notificationController = new NotificationController();
 router.use(authenticateToken);
 
 router.get("/", notificationController.getAll);
+router.post(
+  "/",
+  validateResource(getSingleNotificationSchema),
+  notificationController.getAllNotificationsCustomerWise
+);
 
 router.post(
   "/send",

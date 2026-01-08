@@ -37,6 +37,14 @@ export class NotificationController {
     ResponseUtil.success(res, result, "Notifications retrieved successfully");
   });
 
+  public getAllNotificationsCustomerWise = catchAsync(
+    async (req: Request, res: Response) => {
+      const { id }: GetSingleNotification = req.body;
+      const result = await this.notificationService.getAllNotifications(id);
+      ResponseUtil.success(res, result, "Notifications retrieved successfully");
+    }
+  );
+
   public getSingleNotification = catchAsync(
     async (req: Request, res: Response) => {
       const { id }: GetSingleNotification = req.body;

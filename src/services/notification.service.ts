@@ -164,8 +164,8 @@ export class NotificationService {
     }
   }
 
-  async getAllNotifications() {
-    return await this.notificationRepository.findAll();
+  async getAllNotifications(customerId?: number | undefined | null) {
+    return await this.notificationRepository.findAll(customerId);
   }
 
   async getSingleNotification(id: number) {

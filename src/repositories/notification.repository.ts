@@ -25,8 +25,15 @@ export class NotificationRepository {
     return { notifications };
   }
 
-  async findAll(): Promise<{ notifications: Notification[] }> {
+  async findAll(
+    customerId?: number | undefined | null
+  ): Promise<{ notifications: Notification[] }> {
+    const where: Prisma.NotificationWhereInput = customerId
+      ? { OR: [{ customerId }, { customerId: null }] }
+      : {};
+
     const notifications = await this.repository.findMany({
+      where,
       orderBy: { createdAt: "desc" },
     });
 
